@@ -1,8 +1,8 @@
 import { createHash, randomUUID } from "node:crypto";
 import path from "node:path";
 import type { SimpleGit } from "simple-git";
-import type { AnalysisResult, Confidence, Evidence, Finding, FindingKind, GraphEdge, GraphNode } from "@/lib/domain";
-import { fileAtCommit, gitFor, trackedFiles } from "@/lib/repository";
+import type { AnalysisResult, Confidence, Evidence, Finding, FindingKind, GraphEdge, GraphNode } from "./domain";
+import { fileAtCommit, gitFor, trackedFiles } from "./repository";
 
 const SECRET_PATTERNS = [
   /\bsk-[A-Za-z0-9_-]{16,}\b/g,

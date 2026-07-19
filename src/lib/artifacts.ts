@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { AnalysisResult, Mitigation, Scenario, Workspace } from "@/lib/domain";
+import type { AnalysisResult, Mitigation, Scenario, Workspace } from "./domain";
 
 function now() {
   return new Date().toISOString();

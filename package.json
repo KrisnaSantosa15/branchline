@@ -1,7 +1,28 @@
 {
-  "name": "branchline",
-  "version": "0.1.0",
-  "private": true,
+  "name": "@krisnasantosa15/branchline",
+  "version": "0.2.0",
+  "private": false,
+  "description": "Evidence-led, read-only Git release rehearsal for humans and coding agents.",
+  "license": "MIT",
+  "bin": {
+    "branchline": "./bin/branchline.mjs"
+  },
+  "files": [
+    "bin",
+    "integrations",
+    "plugins",
+    "scripts/branchline.ts",
+    "src/lib/analysis.ts",
+    "src/lib/artifacts.ts",
+    "src/lib/domain.ts",
+    "src/lib/repository.ts",
+    "tsconfig.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -13,7 +34,9 @@
     "test:e2e": "playwright test",
     "db:push": "drizzle-kit push",
     "fixture:reset": "tsx scripts/reset-fixture.ts",
-    "branchline": "tsx scripts/branchline.ts"
+    "branchline": "tsx scripts/branchline.ts",
+    "test:distribution": "node scripts/test-distribution.mjs",
+    "package:check": "npm pack --dry-run"
   },
   "dependencies": {
     "@types/better-sqlite3": "latest",
@@ -25,7 +48,8 @@
     "react": "latest",
     "react-dom": "latest",
     "simple-git": "latest",
-    "zod": "latest"
+    "zod": "latest",
+    "tsx": "latest"
   },
   "devDependencies": {
     "@playwright/test": "latest",
@@ -35,7 +59,6 @@
     "drizzle-kit": "latest",
     "eslint": "latest",
     "eslint-config-next": "latest",
-    "tsx": "latest",
     "typescript": "latest",
     "vitest": "latest"
   }
