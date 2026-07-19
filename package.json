@@ -19,6 +19,7 @@
     "src/lib/repository.ts",
     "tsconfig.json",
     "README.md",
+    "DISTRIBUTION.md",
     "LICENSE"
   ],
   "engines": {

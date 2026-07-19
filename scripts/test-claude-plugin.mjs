@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const pluginRoot = join(projectRoot, "plugins", "claude-code", "branchline");
+const packageManifest = JSON.parse(await readFile(join(projectRoot, "package.json"), "utf8"));
 const plugin = JSON.parse(await readFile(join(pluginRoot, ".claude-plugin", "plugin.json"), "utf8"));
 const marketplace = JSON.parse(await readFile(join(projectRoot, ".claude-plugin", "marketplace.json"), "utf8"));
 
@@ -17,6 +18,7 @@ assert.equal(marketplaceEntry.version, plugin.version);
 
 assert.equal(plugin.name, "branchline");
 assert.match(plugin.version, /^\d+\.\d+\.\d+$/);
+assert.equal(plugin.version, packageManifest.version);
 assert.equal(plugin.skills, "./skills");
 assert.equal(plugin.license, "MIT");
 

@@ -93,8 +93,84 @@ The browser advisor is deliberately provider-neutral and only receives user-sele
 | `npm test` | Run fixture-backed analysis, simulation, and artifact tests. |
 | `npm run fixture:reset` | Recreate the two-commit local Git fixture. |
 | `npm run branchline -- <path>` | Print a read-only evidence and mitigation brief for a Codex agent. |
+| `npm run test:distribution` | Install every portable adapter into an isolated project and verify its skills. |
+| `npm run test:codex-plugin` | Validate the repository Codex plugin's manifest, skills, and marketplace wiring. |
+| `npm run test:claude-plugin` | Validate the Claude Code plugin's manifest, skills, and marketplace wiring. |
+| `npm run package:check` | Verify the files carried by the publishable npm tarball. |
 
-## Codex skill
+## Install into an agent harness
+
+Branchline follows the distribution pattern used by mature agent tools: a real
+local binary, portable `SKILL.md` adapters, and native plugins where the
+harness has a plugin system. The analysis is the same in every route—Git-only,
+read-only, provider-neutral, and governed by a human release decision.
+
+### Portable skills with `npx`
+
+The package is ready to publish as `@krisnasantosa15/branchline`. Once the npm
+release is published, install one or every project-scoped adapter with:
+
+```sh
+npx @krisnasantosa15/branchline init all --cwd <target-project>
+# Or choose one: codex, claude-code, cursor, github-copilot, opencode, gemini
+npx @krisnasantosa15/branchline init codex --cwd <target-project>
+```
+
+It writes two skills into the harness's conventional project location and
+never overwrites an existing adapter unless `--force` is explicit. The installed
+skills invoke the same local binary:
+
+```sh
+npx @krisnasantosa15/branchline doctor
+npx @krisnasantosa15/branchline analyze "<local-path-or-public-https-url>" [base] [head]
+```
+
+Before publication, a maintainer can test the exact commands from a clone
+without a registry account:
+
+```powershell
+node .\bin\branchline.mjs init all --cwd D:\projects\service-api
+node .\bin\branchline.mjs analyze D:\projects\service-api
+npm pack
+```
+
+### Native Codex plugin
+
+The repository includes a Codex plugin at
+[`plugins/branchline`](plugins/branchline) and its repo marketplace at
+[`.agents/plugins/marketplace.json`](.agents/plugins/marketplace.json).
+Add the repository as a marketplace, then install **Branchline** from the
+Codex Plugins directory (restart the desktop app after a local-repository
+change):
+
+```sh
+codex plugin marketplace add KrisnaSantosa15/branchline --ref main
+```
+
+The plugin gives Codex the `$branchline` and `$branchline-cli` skills. It stays
+inside the active Codex session and does not attempt to reuse ChatGPT/Codex
+credentials from a standalone web server.
+
+### Native Claude Code plugin
+
+The root [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json)
+is a validated Claude Code marketplace. After the repository is available on
+GitHub, install it with:
+
+```sh
+claude plugin marketplace add KrisnaSantosa15/branchline
+claude plugin install branchline@branchline-tools
+```
+
+Claude Code exposes the namespaced skills as `/branchline:branchline` and
+`/branchline:branchline-cli`. The plugin uses a skill-triggered release
+rehearsal—not an automatic stop hook—so analysis happens only at a deliberate
+release decision point.
+
+See [DISTRIBUTION.md](DISTRIBUTION.md) for the complete compatibility matrix,
+local verification flow, and release checklist.
+
+## Codex skill in this repository
 
 Branchline includes a repo-scoped `$branchline` skill at [`.agents/skills/branchline/SKILL.md`](.agents/skills/branchline/SKILL.md). Open this repository as the Codex workspace (or restart Codex after cloning) and use it to run a read-only release rehearsal with the agent already in your Codex session:
 
@@ -131,6 +207,9 @@ Each event cites the rule and source evidence that produced it. This makes the r
 ✓ npm test       — 6 fixture-backed tests passed
 ✓ npm run typecheck
 ✓ npm run build
+✓ npm run test:distribution — 6 harness adapters × 2 skills in an isolated project
+✓ npm run test:codex-plugin — repository marketplace + plugin structure
+✓ npm run test:claude-plugin — Claude Code's native marketplace validator
 ✓ Browser workflow: connect → analyze → arm → canary → compatibility adapter
   → accept mitigation → branch → full rollout → compare → Markdown export
 ```

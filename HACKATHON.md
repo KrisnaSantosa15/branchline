@@ -14,7 +14,7 @@ Code review tells developers what changed; incident response tells them what alr
 
 Connect a local Git repository, select a base and candidate commit, and Branchline identifies changed contracts, direct source consumers, tests, and other release signals. A release captain then runs a deterministic scenario with a full rollout, canary, compatibility adapter, or rollback. Each decision changes a transparent shared state and appends an evidence-linked event to the release rail. Teams can branch a scenario, compare outcomes, accept mitigation cards, and export the decision record.
 
-For nuanced recommendations, the included `$branchline` Codex skill gives GPT-5.6 only the locally generated, redacted evidence brief and returns a structured mitigation proposal for review—without a second application key. The standalone browser advisor is deliberately provider-neutral and is optional. No model controls risk metrics, writes to a repository, deploys code, or makes a decision for the team.
+For nuanced recommendations, the included `$branchline` Codex skill gives GPT-5.6 only the locally generated, redacted evidence brief and returns a structured mitigation proposal for review—without a second application key. Branchline is also distributed as a native Codex plugin, a Claude Code marketplace plugin, and portable skills for Cursor, GitHub Copilot, OpenCode, and Gemini CLI. The standalone browser advisor is deliberately provider-neutral and is optional. No model controls risk metrics, writes to a repository, deploys code, or makes a decision for the team.
 
 ## Three-minute demo flow
 
@@ -32,11 +32,11 @@ For nuanced recommendations, the included `$branchline` Codex skill gives GPT-5.
 
 - **GPT-5.6:** via the `$branchline` Codex skill, converts narrowly scoped, redacted evidence into structured mitigation proposals where professional judgment and explanation matter. It is not used for opaque scoring.
 - **Codex:** accelerated the full build—from analysis architecture and fixture design to UI implementation, test creation, browser automation, and submission documentation.
-- **Technical quality:** the app contains a real local Git integration, SQLite persistence, a deterministic simulation engine, validated API boundaries, exported artifacts, and a fixture-backed verification path.
+- **Technical quality:** the app contains a real local Git integration, SQLite persistence, a deterministic simulation engine, validated API boundaries, exported artifacts, a publishable `npx` CLI, native Codex and Claude Code plugins, and fixture-backed verification paths.
 
 ## Judge test account / data
 
-No test account is needed. Run `npm install`, `npm run fixture:reset`, and `npm run dev`; the generated fixture repository provides a deterministic end-to-end release scenario.
+No test account is needed. Run `npm install`, `npm run fixture:reset`, and `npm run dev`; the generated fixture repository provides a deterministic end-to-end release scenario. For agent-distribution checks, run `npm run test:distribution`, `npm run test:codex-plugin`, and `npm run test:claude-plugin`.
 
 ## Suggested repository checklist
 

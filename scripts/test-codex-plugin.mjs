@@ -5,11 +5,13 @@ import { fileURLToPath } from "node:url";
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const pluginRoot = join(projectRoot, "plugins", "branchline");
+const packageManifest = JSON.parse(await readFile(join(projectRoot, "package.json"), "utf8"));
 const plugin = JSON.parse(await readFile(join(pluginRoot, ".codex-plugin", "plugin.json"), "utf8"));
 const marketplace = JSON.parse(await readFile(join(projectRoot, ".agents", "plugins", "marketplace.json"), "utf8"));
 
 assert.equal(plugin.name, "branchline");
 assert.match(plugin.version, /^\d+\.\d+\.\d+$/);
+assert.equal(plugin.version, packageManifest.version);
 assert.equal(plugin.skills, "./skills/");
 assert.equal(plugin.interface.displayName, "Branchline");
 assert.ok(plugin.interface.capabilities.includes("skills"));
