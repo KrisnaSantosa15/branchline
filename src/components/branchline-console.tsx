@@ -8,6 +8,7 @@ import type { AnalysisResult, Comparison, Mitigation, ReleaseStrategy, Scenario,
 type WorkspaceResponse = { workspace: Workspace };
 type AnalyzeResponse = { analysis: AnalysisResult; mitigations: Mitigation[] };
 type WorkspaceStateResponse = { workspace: Workspace; analysis?: AnalysisResult; scenarios: Scenario[]; mitigations: Mitigation[] };
+type WorkflowPanel = "connect" | "impact" | "rehearse" | "decide";
 
 async function api<T>(url: string, options?: RequestInit): Promise<T> {
   const response = await fetch(url, { ...options, headers: { "Content-Type": "application/json", ...(options?.headers ?? {}) } });
@@ -60,6 +61,7 @@ export function BranchlineConsole() {
   const [comparison, setComparison] = useState<Comparison>();
   const [selectedEvidence, setSelectedEvidence] = useState<string[]>([]);
   const [advisorAvailable, setAdvisorAvailable] = useState<boolean>();
+  const [activePanel, setActivePanel] = useState<WorkflowPanel>("connect");
   const [busy, setBusy] = useState<string>();
   const [notice, setNotice] = useState<{ text: string; tone: "error" | "success" | "info" }>();
 
@@ -67,6 +69,12 @@ export function BranchlineConsole() {
   const riskFindingCount = analysis?.findings.filter((finding) => finding.severity === "critical" || finding.severity === "high").length ?? 0;
   const alternateScenarios = scenarios.filter((item) => item.id !== scenario?.id);
   const canUseModel = selectedEvidence.length > 0;
+  const workflow = [
+    { id: "connect" as const, number: "01", label: "Connect", detail: workspace ? "source ready" : "choose source", disabled: false },
+    { id: "impact" as const, number: "02", label: "Impact", detail: analysis ? `${analysis.findings.length} signals` : "map the diff", disabled: !analysis },
+    { id: "rehearse" as const, number: "03", label: "Rehearse", detail: scenario ? scenario.state.releaseStatus : "test a path", disabled: !analysis },
+    { id: "decide" as const, number: "04", label: "Decide", detail: `${mitigations.filter((item) => item.status === "accepted").length} accepted`, disabled: !analysis },
+  ];
 
   useEffect(() => {
     void fetch("/api/capabilities")
@@ -104,6 +112,7 @@ export function BranchlineConsole() {
       setScenarios([]);
       setMitigations([]);
       setComparison(undefined);
+      setActivePanel("connect");
       setRecentWorkspaces((items) => [result.workspace, ...items.filter((item) => item.id !== result.workspace.id)]);
       setNotice({ text: "Repository connected. Select the release boundary, then build the evidence map.", tone: "success" });
     } catch (error) {
@@ -129,6 +138,7 @@ export function BranchlineConsole() {
       setHeadCommit(result.analysis?.headCommit ?? result.workspace.commits[0]?.hash ?? "");
       setSelectedEvidence(result.analysis?.findings.flatMap((finding) => finding.evidence.map((item) => item.id)).slice(0, 3) ?? []);
       setComparison(undefined);
+      setActivePanel(result.analysis ? result.scenarios.length ? "rehearse" : "impact" : "connect");
       setNotice({ text: `Resumed ${result.workspace.name} with its saved evidence, rehearsal branches, and mitigation decisions.`, tone: "success" });
     } catch (error) {
       setNotice({ text: error instanceof Error ? error.message : "That control room could not be reopened.", tone: "error" });
@@ -148,6 +158,7 @@ export function BranchlineConsole() {
       setScenario(undefined);
       setScenarios([]);
       setSelectedEvidence(result.analysis.findings.flatMap((finding) => finding.evidence.map((item) => item.id)).slice(0, 3));
+      setActivePanel("impact");
       setNotice({ text: `${result.analysis.findings.length} findings mapped from the real diff. Arm the release rehearsal when you are ready.`, tone: "success" });
     } catch (error) {
       setNotice({ text: error instanceof Error ? error.message : "Analysis failed.", tone: "error" });
@@ -163,6 +174,7 @@ export function BranchlineConsole() {
       const result = await api<{ scenario: Scenario }>("/api/scenarios", { method: "POST", body: JSON.stringify({ workspaceId: workspace.id, analysisId: analysis.id }) });
       setScenario(result.scenario);
       setScenarios([result.scenario]);
+      setActivePanel("rehearse");
       setNotice({ text: "Rehearsal armed. Every action below changes a persisted, deterministic scenario—not a real deployment.", tone: "info" });
     } catch (error) {
       setNotice({ text: error instanceof Error ? error.message : "Scenario could not start.", tone: "error" });
@@ -279,11 +291,11 @@ export function BranchlineConsole() {
         </div>
       </header>
 
-      <section className="hero">
+      <section className={clsx("hero", workspace && "hero--condensed")}>
         <div>
-          <p className="eyebrow">A flight recorder for the change you have not shipped yet</p>
-          <h1>Run the release<br />that will never happen.</h1>
-          <p className="hero__copy">Connect a real local Git diff. Branchline maps the evidence, rehearses the blast radius, and turns the safer path into testable release work.</p>
+          <p className="eyebrow">Release control, one decision at a time</p>
+          <h1>Map it. Rehearse it.<br />Then decide.</h1>
+          <p className="hero__copy">A focused flight path for a real local or public Git diff—evidence first, deterministic rehearsal second, human approval last.</p>
         </div>
         <div className="hero__plate" aria-label="Branchline product principles">
           <span>01</span><p>Evidence over intuition</p>
@@ -300,7 +312,28 @@ export function BranchlineConsole() {
         </div>
       )}
 
-      <section className="module intake">
+      {workspace && (
+        <nav className="workflow-rail" aria-label="Release rehearsal workflow" role="tablist">
+          {workflow.map((step) => (
+            <button
+              className={clsx("workflow-tab", activePanel === step.id && "workflow-tab--active")}
+              type="button"
+              key={step.id}
+              role="tab"
+              aria-selected={activePanel === step.id}
+              aria-controls={`panel-${step.id}`}
+              disabled={step.disabled}
+              onClick={() => setActivePanel(step.id)}
+            >
+              <span className="workflow-tab__number">{step.number}</span>
+              <span><b>{step.label}</b><small>{step.detail}</small></span>
+              {step.id === "rehearse" && scenario && <span className="workflow-tab__signal" aria-label="Scenario armed" />}
+            </button>
+          ))}
+        </nav>
+      )}
+
+      {activePanel === "connect" && <section className="module intake" id="panel-connect" role="tabpanel" aria-label="Connect Git source">
         <div className="module__heading">
           <span className="module__index">01 / CONNECT</span>
           <h2>Set the release boundary.</h2>
@@ -352,11 +385,10 @@ export function BranchlineConsole() {
             </button>
           </div>
         )}
-      </section>
+      </section>}
 
-      {analysis && (
-        <>
-          <section className="module evidence">
+      {analysis && activePanel === "impact" && (
+          <section className="module evidence" id="panel-impact" role="tabpanel" aria-label="Impact map">
             <div className="module__heading module__heading--split">
               <div>
                 <span className="module__index">02 / EVIDENCE MAP</span>
@@ -410,8 +442,10 @@ export function BranchlineConsole() {
               </div>
             </div>
           </section>
+      )}
 
-          <section className={clsx("module rehearsal", !scenario && "rehearsal--inactive")}>
+      {analysis && activePanel === "rehearse" && (
+          <section className={clsx("module rehearsal", !scenario && "rehearsal--inactive")} id="panel-rehearse" role="tabpanel" aria-label="Release rehearsal">
             <div className="module__heading module__heading--split">
               <div>
                 <span className="module__index">03 / RELEASE RAIL</span>
@@ -451,7 +485,10 @@ export function BranchlineConsole() {
               </>
             ) : <div className="empty-stage"><Play size={28} /><p>The evidence map is ready. Arm the rehearsal to make a release decision and observe the causal trace.</p></div>}
           </section>
+      )}
 
+      {analysis && activePanel === "decide" && (
+        <>
           <section className="module mitigations">
             <div className="module__heading module__heading--split">
               <div><span className="module__index">04 / MITIGATION DESK</span><h2>Turn the rehearsal into release work.</h2></div>
