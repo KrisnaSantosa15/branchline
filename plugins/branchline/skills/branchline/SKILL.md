@@ -14,12 +14,12 @@ Codex credentials.
 
 1. Confirm that the user is authorized to inspect the repository and that the
    proposed change is a release candidate.
-2. Ensure the local Branchline command is available. Run `branchline doctor`.
-   If it is not installed, ask the user to install the official package rather
-   than guessing a binary path:
+2. Confirm prerequisites with the source-backed, official command. It is usable
+   immediately from the public Branchline repository and does not rely on a
+   globally installed binary:
 
    ```sh
-   npx @krisnasantosa15/branchline doctor
+   npx github:KrisnaSantosa15/branchline doctor
    ```
 
 3. Produce the release brief. The command reads Git metadata and committed
@@ -27,7 +27,7 @@ Codex credentials.
    requests, or sends repository data to a provider:
 
    ```sh
-   branchline analyze "<local-git-repository-or-public-https-url>"
+   npx github:KrisnaSantosa15/branchline analyze "<local-git-repository-or-public-https-url>"
    ```
 
    Pass base and head commits as the second and third positional arguments to

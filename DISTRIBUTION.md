@@ -21,6 +21,16 @@ or sends repository evidence to a provider.
 command skips a skill directory that already exists; it only replaces one when
 the caller passes `--force`.
 
+Use the live GitHub-backed command before the optional npm publish:
+
+```sh
+npx github:KrisnaSantosa15/branchline init all --cwd <target-project>
+npx github:KrisnaSantosa15/branchline analyze "<local-path-or-public-https-url>"
+```
+
+After the owner publishes `@krisnasantosa15/branchline`, the same command shape
+works with that registry package instead.
+
 ## CLI contract
 
 ```text

@@ -107,13 +107,13 @@ read-only, provider-neutral, and governed by a human release decision.
 
 ### Portable skills with `npx`
 
-The package is ready to publish as `@krisnasantosa15/branchline`. Once the npm
-release is published, install one or every project-scoped adapter with:
+Install one or every project-scoped adapter directly from this public GitHub
+repository today:
 
 ```sh
-npx @krisnasantosa15/branchline init all --cwd <target-project>
+npx github:KrisnaSantosa15/branchline init all --cwd <target-project>
 # Or choose one: codex, claude-code, cursor, github-copilot, opencode, gemini
-npx @krisnasantosa15/branchline init codex --cwd <target-project>
+npx github:KrisnaSantosa15/branchline init codex --cwd <target-project>
 ```
 
 It writes two skills into the harness's conventional project location and
@@ -121,12 +121,14 @@ never overwrites an existing adapter unless `--force` is explicit. The installed
 skills invoke the same local binary:
 
 ```sh
-npx @krisnasantosa15/branchline doctor
-npx @krisnasantosa15/branchline analyze "<local-path-or-public-https-url>" [base] [head]
+npx github:KrisnaSantosa15/branchline doctor
+npx github:KrisnaSantosa15/branchline analyze "<local-path-or-public-https-url>" [base] [head]
 ```
 
-Before publication, a maintainer can test the exact commands from a clone
-without a registry account:
+The release-ready npm package is named `@krisnasantosa15/branchline`. Once the
+owner deliberately publishes it, replace `github:KrisnaSantosa15/branchline`
+with that package name for registry-backed installs. A maintainer can also run
+the working tree directly:
 
 ```powershell
 node .\bin\branchline.mjs init all --cwd D:\projects\service-api

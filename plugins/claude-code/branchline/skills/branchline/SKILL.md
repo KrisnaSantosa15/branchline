@@ -16,7 +16,7 @@ does not need or use a separate model API key.
 2. Generate the local, read-only brief:
 
    ```sh
-   npx @krisnasantosa15/branchline analyze "<local-git-repository-or-public-https-url>"
+   npx github:KrisnaSantosa15/branchline analyze "<local-git-repository-or-public-https-url>"
    ```
 
    Pass base and head commits as the second and third positional arguments to

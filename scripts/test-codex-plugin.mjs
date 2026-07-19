@@ -26,6 +26,7 @@ for (const name of ["branchline", "branchline-cli"]) {
   const skill = await readFile(skillPath, "utf8");
   await stat(skillPath);
   assert.match(skill, /^---\r?\nname: [\w-]+\r?\ndescription: .+\r?\n---\r?\n/s);
+  assert.match(skill, /npx github:KrisnaSantosa15\/branchline/);
 }
 
 console.log("Codex plugin structure checks passed.");

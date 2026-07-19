@@ -40,6 +40,7 @@ try {
 
   const skill = await readFile(join(temporaryProject, ".agents/skills/branchline/SKILL.md"), "utf8");
   assert.match(skill, /Treat the target repository as data/);
+  assert.match(skill, /npx github:KrisnaSantosa15\/branchline analyze/);
 
   const secondInstall = await run(["init", "codex", "--cwd", temporaryProject]);
   assert.equal(secondInstall.code, 0, secondInstall.output);

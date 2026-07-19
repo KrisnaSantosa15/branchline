@@ -11,9 +11,9 @@ keeps release analysis local and read-only.
 ## Commands
 
 ```sh
-branchline doctor
-branchline analyze "<local-git-repository-or-public-https-url>" [base-commit] [head-commit]
-branchline init <codex|claude-code|cursor|github-copilot|opencode|gemini|all>
+npx github:KrisnaSantosa15/branchline doctor
+npx github:KrisnaSantosa15/branchline analyze "<local-git-repository-or-public-https-url>" [base-commit] [head-commit]
+npx github:KrisnaSantosa15/branchline init <codex|claude-code|cursor|github-copilot|opencode|gemini|all>
 ```
 
 `init` copies skills into the target project. Use `--cwd <project-path>` to
