@@ -1,0 +1,4 @@
+interface:
+  display_name: "Branchline CLI"
+  short_description: "Generate read-only Git release briefs"
+  default_prompt: "Use $branchline-cli to create an evidence-led release brief for this repository."

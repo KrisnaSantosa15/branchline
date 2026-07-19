@@ -8,18 +8,22 @@ or sends repository evidence to a provider.
 
 ## Compatibility matrix
 
-| Harness | Installation route | Project destination | Native package |
-| --- | --- | --- | --- |
-| Codex | `branchline init codex` | `.agents/skills/` | [`plugins/branchline`](plugins/branchline) + `.agents/plugins/marketplace.json` |
-| Claude Code | `branchline init claude-code` | `.claude/skills/` | [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json) |
-| Cursor | `branchline init cursor` | `.cursor/skills/` | Portable skill |
-| GitHub Copilot | `branchline init github-copilot` | `.github/skills/` | Portable skill |
-| OpenCode | `branchline init opencode` | `.opencode/skills/` | Portable skill |
-| Gemini CLI | `branchline init gemini` | `.gemini/skills/` | Portable skill |
+| Harness | Recommended installation | Native package |
+| --- | --- | --- |
+| Codex | `npx skills add krisnasantosa15/branchline --skill '*' --agent codex --yes` | [`plugins/branchline`](plugins/branchline) + `.agents/plugins/marketplace.json` |
+| Claude Code | `npx skills add krisnasantosa15/branchline --skill '*' --agent claude-code --yes` | [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json) |
+| Cursor | `npx skills add krisnasantosa15/branchline --skill '*' --agent cursor --yes` | Portable skill |
+| GitHub Copilot | `npx skills add krisnasantosa15/branchline --skill '*' --agent github-copilot --yes` | Portable skill |
+| OpenCode | `npx skills add krisnasantosa15/branchline --skill '*' --agent opencode --yes` | Portable skill |
+| Gemini CLI | `npx skills add krisnasantosa15/branchline --skill '*' --agent gemini-cli --yes` | Portable skill |
 
-`branchline init all` installs all six adapters into a selected project. The
-command skips a skill directory that already exists; it only replaces one when
-the caller passes `--force`.
+Run `npx skills add krisnasantosa15/branchline` without flags for an interactive
+install. The Skills CLI discovers the two canonical `SKILL.md` files and writes
+them to the selected agent's standard project or global location.
+
+`branchline init all` remains available as a fallback installer for explicit
+adapter locations. It skips a skill directory that already exists; it only
+replaces one when the caller passes `--force`.
 
 Use the live GitHub-backed command before the optional npm publish:
 

@@ -9,6 +9,13 @@ const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const binary = join(projectRoot, "bin", "branchline.mjs");
 const temporaryProject = await mkdtemp(join(tmpdir(), "branchline-distribution-"));
 
+for (const canonicalSkill of ["branchline", "branchline-cli"]) {
+  const contents = await readFile(join(projectRoot, ".agents", "skills", canonicalSkill, "SKILL.md"), "utf8");
+  assert.match(contents, /^---\r?\nname: [\w-]+\r?\ndescription: .+\r?\n---\r?\n/s);
+  assert.doesNotMatch(contents, /\[TODO:/);
+  assert.match(contents, /npx github:KrisnaSantosa15\/branchline/);
+}
+
 function run(argumentsList) {
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, [binary, ...argumentsList], { cwd: projectRoot, stdio: "pipe" });

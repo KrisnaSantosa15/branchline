@@ -345,7 +345,7 @@ export function BranchlineConsole() {
           </label>
           <label className="intake__path">
             <span>Git source</span>
-            <input value={repositorySource} onChange={(event) => setRepositorySource(event.target.value)} placeholder="D:\\projects\\service-api or https://github.com/org/repo.git" spellCheck={false} />
+            <input value={repositorySource} onChange={(event) => setRepositorySource(event.target.value)} placeholder="C:\\path\\to\\service-api or https://github.com/org/repo.git" spellCheck={false} />
             <small>{sourceHint}</small>
           </label>
           <button className="button button--primary" type="button" onClick={connect} disabled={busy === "connect" || !repositorySource.trim()}>

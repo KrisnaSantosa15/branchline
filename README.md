@@ -52,7 +52,8 @@ The result is a working release decision tool, not a chat UI that summarizes a p
 ### Run locally
 
 ```powershell
-cd D:\Projects\exploration\branchline
+git clone https://github.com/KrisnaSantosa15/branchline.git
+cd branchline
 npm install
 Copy-Item .env.example .env.local
 npm run fixture:reset
@@ -62,7 +63,7 @@ npm run dev
 Open `http://localhost:3000`, then connect the generated fixture repository:
 
 ```text
-D:\Projects\exploration\branchline\fixtures\release-fixture
+.\fixtures\release-fixture
 ```
 
 Choose the older `baseline: optional release risk contract` commit as the base and `feat: require release risk level` as the head. Build the impact map, arm a rehearsal, choose **Canary**, then **Compatibility adapter**. Branch the scenario and test **Full rollout** to compare both release paths.
@@ -77,7 +78,7 @@ BRANCHLINE_ADVISOR_API_KEY=
 BRANCHLINE_ADVISOR_MODEL=
 
 # Branchline rejects repository paths outside this root.
-BRANCHLINE_REPO_ROOT=D:\\Projects\\exploration
+BRANCHLINE_REPO_ROOT=C:\\path\\to\\approved-repositories
 
 ```
 
@@ -105,36 +106,43 @@ local binary, portable `SKILL.md` adapters, and native plugins where the
 harness has a plugin system. The analysis is the same in every route—Git-only,
 read-only, provider-neutral, and governed by a human release decision.
 
-### Portable skills with `npx`
+### Install skills with `npx skills` (recommended)
 
-Install one or every project-scoped adapter directly from this public GitHub
-repository today:
+Install Branchline's two portable skills directly from this public GitHub
+repository. The interactive command works exactly as written:
 
 ```sh
-npx github:KrisnaSantosa15/branchline init all --cwd <target-project>
-# Or choose one: codex, claude-code, cursor, github-copilot, opencode, gemini
-npx github:KrisnaSantosa15/branchline init codex --cwd <target-project>
+npx skills add krisnasantosa15/branchline
 ```
 
-It writes two skills into the harness's conventional project location and
-never overwrites an existing adapter unless `--force` is explicit. The installed
-skills invoke the same local binary:
+The Skills CLI discovers `branchline` and `branchline-cli`, asks which agent to
+configure, and writes them to that agent's standard location. To make it
+non-interactive and choose a target explicitly:
 
 ```sh
-npx github:KrisnaSantosa15/branchline doctor
+npx skills add krisnasantosa15/branchline --skill '*' --agent codex --yes
+npx skills add krisnasantosa15/branchline --skill '*' --agent claude-code --yes
+```
+
+Each installed skill runs the local, read-only release brief command through
+the same public source:
+
+```sh
 npx github:KrisnaSantosa15/branchline analyze "<local-path-or-public-https-url>" [base] [head]
+```
+
+### Direct CLI adapter (fallback)
+
+If a harness is not supported by the Skills CLI, or you prefer Branchline's
+explicit adapter locations, use the direct installer:
+
+```powershell
+npx github:KrisnaSantosa15/branchline init all --cwd <target-project>
 ```
 
 The release-ready npm package is named `@krisnasantosa15/branchline`. Once the
 owner deliberately publishes it, replace `github:KrisnaSantosa15/branchline`
-with that package name for registry-backed installs. A maintainer can also run
-the working tree directly:
-
-```powershell
-node .\bin\branchline.mjs init all --cwd D:\projects\service-api
-node .\bin\branchline.mjs analyze D:\projects\service-api
-npm pack
-```
+with that package name for registry-backed CLI installs.
 
 ### Native Codex plugin
 
@@ -177,7 +185,7 @@ local verification flow, and release checklist.
 Branchline includes a repo-scoped `$branchline` skill at [`.agents/skills/branchline/SKILL.md`](.agents/skills/branchline/SKILL.md). Open this repository as the Codex workspace (or restart Codex after cloning) and use it to run a read-only release rehearsal with the agent already in your Codex session:
 
 ```powershell
-npm run branchline -- "D:\projects\service-api"
+npm run branchline -- "<path-to-service-api>"
 # Or use a public HTTPS Git source:
 npm run branchline -- "https://github.com/org/service-api.git"
 ```
