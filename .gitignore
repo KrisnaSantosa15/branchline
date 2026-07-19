@@ -1,0 +1,13 @@
+node_modules/
+.next/
+*.tsbuildinfo
+playwright-report/
+test-results/
+coverage/
+.playwright-cli/
+output/
+fixtures/release-fixture/
+data/*.db
+data/*.db-*
+.env
+.env.local
