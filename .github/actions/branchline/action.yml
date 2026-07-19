@@ -1,0 +1,26 @@
+name: Branchline policy gate
+description: Run a deterministic Branchline release-policy check and publish the result in the GitHub Actions job summary.
+inputs:
+  policy:
+    description: Optional path to a flat .branchline/policy.yml file.
+    required: false
+    default: ""
+  fail-on:
+    description: Fail the workflow on fail, warn, or never.
+    required: false
+    default: fail
+runs:
+  using: composite
+  steps:
+    - id: branchline
+      shell: bash
+      run: |
+        set +e
+        args=(check "$GITHUB_WORKSPACE" --format markdown --fail-on "${{ inputs.fail-on }}")
+        if [ -n "${{ inputs.policy }}" ]; then
+          args+=(--policy "$GITHUB_WORKSPACE/${{ inputs.policy }}")
+        fi
+        npx --yes github:KrisnaSantosa15/branchline "${args[@]}" > "$RUNNER_TEMP/branchline-policy.md"
+        status=$?
+        cat "$RUNNER_TEMP/branchline-policy.md" >> "$GITHUB_STEP_SUMMARY"
+        exit $status

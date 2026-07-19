@@ -1,0 +1,10 @@
+# Copy this file to .branchline/policy.yml in the repository you want to gate.
+# Branchline intentionally supports this small, reviewable flat YAML surface.
+version: 1
+requireScenarioDecision: true
+minTestConfidence: 75
+requireCompatibilityForContractTightening: true
+requireCouncil: true
+requireAllCouncilRoles: true
+requireHumanDecision: true
+allowAcceptedRisk: false
