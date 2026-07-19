@@ -18,8 +18,9 @@ or sends repository evidence to a provider.
 | Gemini CLI | `npx skills add krisnasantosa15/branchline --skill '*' --agent gemini-cli --yes` | Portable skill |
 
 Run `npx skills add krisnasantosa15/branchline` without flags for an interactive
-install. The Skills CLI discovers the two canonical `SKILL.md` files and writes
-them to the selected agent's standard project or global location.
+install. The Skills CLI discovers the four canonical `SKILL.md` files—including
+the evidence-bound Council and human review workflows—and writes them to the
+selected agent's standard project or global location.
 
 `branchline init all` remains available as a fallback installer for explicit
 adapter locations. It skips a skill directory that already exists; it only
@@ -40,6 +41,10 @@ works with that registry package instead.
 ```text
 branchline init <harness|all> [--cwd <project-path>] [--force]
 branchline analyze <local-git-path-or-public-https-url> [base-commit] [head-commit]
+branchline council <local-git-path-or-public-https-url> [base-commit] [head-commit] [--format json|markdown]
+branchline validate-report <evidence-pack.json> <report.json> [...report.json] [--format json|markdown]
+branchline check <local-git-path-or-public-https-url> [base-commit] [head-commit] [--policy <policy.yml>] [--release-brief <brief.json>]
+branchline mcp
 branchline doctor
 ```
 
@@ -47,6 +52,47 @@ branchline doctor
 repository or a credential-free public HTTPS remote. Local paths are constrained
 by the authorized workspace root; remote repositories are shallow-cloned into a
 managed cache. No model key is part of this contract.
+
+`council` produces the immutable, redacted evidence packet used by four
+specialists. `validate-report` rejects claims that cite evidence outside that
+packet and makes disagreement visible rather than silently averaging it away.
+`check` evaluates a flat, portable policy file for local development or CI.
+All three commands remain Git-read-only.
+
+## CI and MCP integrations
+
+Copy [the GitHub Actions sample](integrations/github/branchline-policy.yml) and
+[policy example](integrations/github/policy.yml) into a repository. The
+composite action runs `branchline check`, adds a Markdown report to the GitHub
+job summary, and lets the calling workflow select whether `fail`, `warn`, or
+`never` should fail the job.
+
+Branchline also exposes a standard stdio MCP server for any compatible harness:
+
+```sh
+npx --yes github:KrisnaSantosa15/branchline mcp
+```
+
+Its tools analyze a release, generate a Council evidence pack, compare two
+deterministic rollout paths, and check an inline policy. The server also
+provides a release-safety resource and guided Council/review prompts. It emits
+only newline-delimited JSON-RPC on stdout and does not execute target code,
+write to the target repository, push, merge, deploy, or make a release decision.
+
+Generic MCP configuration:
+
+```json
+{
+  "mcpServers": {
+    "branchline": {
+      "command": "npx",
+      "args": ["--yes", "github:KrisnaSantosa15/branchline", "mcp"]
+    }
+  }
+}
+```
+
+Use `npx.cmd` in Windows-native configurations that require it.
 
 ## Maintainer verification
 
@@ -59,15 +105,17 @@ npm run build
 npm run test:distribution
 npm run test:codex-plugin
 npm run test:claude-plugin
+npm run test:mcp
 npm run package:check
 ```
 
 The test suite verifies the engine and simulation. `test:distribution` creates
-an isolated temporary project and checks all 12 installed skill files.
+an isolated temporary project and checks all 24 installed skill files.
 `test:claude-plugin` also runs `claude plugin validate .` when Claude Code is
 available. `test:codex-plugin` mirrors the official manifest contract; the
 bundled Codex helper validator additionally needs `PyYAML` in its Python
-runtime.
+runtime. `test:mcp` starts a real server, negotiates JSON-RPC, discovers its
+tools/resources/prompts, and requests an evidence pack from the fixture.
 
 For the strongest publish-candidate check, pack and execute the result rather
 than merely running from the working tree:

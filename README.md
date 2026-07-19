@@ -15,6 +15,8 @@ Real Git diff
   → evidence map of changed contracts and consumers
   → stateful release rehearsal
   → branching rollout decisions
+  → evidence-bound specialist Council + human decision ledger
+  → policy gate for CI and agent harnesses
   → accepted mitigations + test proposal + exportable release brief
 ```
 
@@ -29,6 +31,9 @@ The result is a working release decision tool, not a chat UI that summarizes a p
 - Detect and redact secret-shaped values before optional model context is assembled.
 - Rehearse full rollout, canary, compatibility adapter, and rollback decisions against deterministic state rules.
 - Persist scenario branches, a full causal event rail, mitigation decisions, and reports in SQLite.
+- Create an immutable, redacted Council evidence pack for contract, testing, rollout, and security specialists; validate each structured report against that exact packet and record the human resolution.
+- Evaluate a portable `.branchline/policy.yml` locally or in GitHub Actions, with an explicit fail/warn/never policy for release gates.
+- Offer a provider-neutral, read-only MCP server with evidence, Council, rollout-comparison, and policy tools for any compatible coding-agent harness.
 - Generate editable, deterministic contract-test and release-checklist proposals.
 - Optionally request a reviewable mitigation proposal from a configured, Chat Completions-compatible advisor—or use `$branchline` in Codex with no separate provider key.
 - Compare scenario branches and download Markdown or JSON release briefs.
@@ -94,9 +99,14 @@ The browser advisor is deliberately provider-neutral and only receives user-sele
 | `npm test` | Run fixture-backed analysis, simulation, and artifact tests. |
 | `npm run fixture:reset` | Recreate the two-commit local Git fixture. |
 | `npm run branchline -- <path>` | Print a read-only evidence and mitigation brief for a Codex agent. |
+| `npx github:KrisnaSantosa15/branchline council <path>` | Create an immutable Council evidence packet from a release boundary. |
+| `npx github:KrisnaSantosa15/branchline validate-report <packet.json> <report.json> ...` | Verify specialist reports and synthesize their agreements and disagreements. |
+| `npx github:KrisnaSantosa15/branchline check <path> --policy <policy.yml>` | Evaluate release evidence against a portable policy. |
+| `npx github:KrisnaSantosa15/branchline mcp` | Run the read-only MCP server over stdio. |
 | `npm run test:distribution` | Install every portable adapter into an isolated project and verify its skills. |
 | `npm run test:codex-plugin` | Validate the repository Codex plugin's manifest, skills, and marketplace wiring. |
 | `npm run test:claude-plugin` | Validate the Claude Code plugin's manifest, skills, and marketplace wiring. |
+| `npm run test:mcp` | Run a real MCP JSON-RPC session and evidence-pack smoke test. |
 | `npm run package:check` | Verify the files carried by the publishable npm tarball. |
 
 ## Install into an agent harness
@@ -108,14 +118,15 @@ read-only, provider-neutral, and governed by a human release decision.
 
 ### Install skills with `npx skills` (recommended)
 
-Install Branchline's two portable skills directly from this public GitHub
+Install Branchline's four portable skills directly from this public GitHub
 repository. The interactive command works exactly as written:
 
 ```sh
 npx skills add krisnasantosa15/branchline
 ```
 
-The Skills CLI discovers `branchline` and `branchline-cli`, asks which agent to
+The Skills CLI discovers `branchline`, `branchline-cli`, `branchline-council`,
+and `branchline-review`, asks which agent to
 configure, and writes them to that agent's standard location. To make it
 non-interactive and choose a target explicitly:
 
@@ -180,6 +191,46 @@ release decision point.
 See [DISTRIBUTION.md](DISTRIBUTION.md) for the complete compatibility matrix,
 local verification flow, and release checklist.
 
+## CI policy gate and MCP
+
+Start from the checked-in [policy example](integrations/github/policy.yml), then
+place your team policy at `.branchline/policy.yml`. The command returns a
+machine-readable report and can fail a build only at the severity you choose:
+
+```sh
+npx github:KrisnaSantosa15/branchline check . --policy .branchline/policy.yml --fail-on fail
+```
+
+For GitHub Actions, copy
+[the sample workflow](integrations/github/branchline-policy.yml). It invokes
+the repository's composite action and writes its Markdown report to the job
+summary. It never runs code from the repository under review.
+
+For an MCP-compatible harness, launch a stdio server with no API key:
+
+```sh
+npx --yes github:KrisnaSantosa15/branchline mcp
+```
+
+For example, an MCP JSON configuration can use:
+
+```json
+{
+  "mcpServers": {
+    "branchline": {
+      "command": "npx",
+      "args": ["--yes", "github:KrisnaSantosa15/branchline", "mcp"]
+    }
+  }
+}
+```
+
+Use `npx.cmd` as the command in Windows-native configurations that require the
+`.cmd` executable. Branchline exposes `analyze_release`, `get_evidence_pack`,
+`compare_rollouts`, and `check_policy`, plus a release-safety resource and two
+guided prompts. It only writes JSON-RPC messages to stdout; diagnostic output
+stays on stderr.
+
 ## Codex skill in this repository
 
 Branchline includes a repo-scoped `$branchline` skill at [`.agents/skills/branchline/SKILL.md`](.agents/skills/branchline/SKILL.md). Open this repository as the Codex workspace (or restart Codex after cloning) and use it to run a read-only release rehearsal with the agent already in your Codex session:
@@ -196,6 +247,7 @@ This route needs no separate model key: Codex reasons over the locally generated
 
 - Branchline reads local repositories only inside `BRANCHLINE_REPO_ROOT`. It also accepts credential-free public HTTPS Git URLs, which it shallow-clones as bare repositories into its own managed cache.
 - It does not execute repository code, run arbitrary tests, make pull requests, deploy, or contact external systems.
+- Its MCP server follows the same boundary: it returns Git evidence and deterministic rehearsal output over local stdio, and cannot merge, push, deploy, or decide for a human.
 - Potential secrets are redacted before any optional advisor request is prepared.
 - Advisor suggestions are proposals validated as structured data; they never alter scenario metrics or apply changes automatically.
 - All metrics in the release rail are deterministic scenario outputs. They are not observed production telemetry or a promise that a real incident will occur.
@@ -214,12 +266,13 @@ Each event cites the rule and source evidence that produced it. This makes the r
 ## Verification performed
 
 ```text
-✓ npm test       — 6 fixture-backed tests passed
+✓ npm test       — 20 fixture-backed tests passed
 ✓ npm run typecheck
 ✓ npm run build
-✓ npm run test:distribution — 6 harness adapters × 2 skills in an isolated project
+✓ npm run test:distribution — 6 harness adapters × 4 skills in an isolated project
 ✓ npm run test:codex-plugin — repository marketplace + plugin structure
 ✓ npm run test:claude-plugin — Claude Code's native marketplace validator
+✓ npm run test:mcp — initialize, tools/resources/prompts, and real evidence pack
 ✓ Browser workflow: connect → analyze → arm → canary → compatibility adapter
   → accept mitigation → branch → full rollout → compare → Markdown export
 ```
