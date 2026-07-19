@@ -13,10 +13,10 @@ Run a local, read-only Git analysis first. Use the resulting evidence to advise 
 2. From this Branchline repository, run the read-only analyzer. It never executes target code, runs tests, deploys, creates pull requests, or sends data to a provider:
 
    ```powershell
-   npm run branchline -- "<local-git-repository>"
+   npm run branchline -- "<local-git-repository-or-public-https-url>"
    ```
 
-   Pass `--base <commit>` and `--head <commit>` to choose an explicit release boundary. Use `--format json` only when a downstream tool needs structured output.
+   Pass the base and head commit as the second and third positional arguments to choose an explicit release boundary. Public remotes must use credential-free HTTPS and are shallow-cloned into Branchline's managed cache.
 3. Review the evidence, then recommend a rollout decision (canary, compatibility adapter, full rollout, or rollback). Clearly separate observed Git evidence from assumptions and deterministic scenario outcomes.
 4. Turn each accepted mitigation into a concrete test, owner, and fallback. Do not accept or resolve mitigations on the user's behalf.
 5. If the user wants the visual workspace, run `npm run dev`, connect the same repository, and preserve the same evidence boundary.

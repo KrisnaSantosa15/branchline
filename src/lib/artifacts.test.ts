@@ -7,7 +7,7 @@ const analysis: AnalysisResult = {
   id: "analysis-1", workspaceId: "workspace-1", baseCommit: "base1234", headCommit: "head1234", diffSummary: { filesChanged: 1, insertions: 1, deletions: 1 }, secretWarnings: [], graph: { nodes: [], edges: [] }, createdAt: "2026-07-19T00:00:00.000Z",
   findings: [{ id: "finding-1", kind: "api-contract-tightened", title: "riskLevel is now required", detail: "A contract changed.", confidence: "high", severity: "critical", impactedFiles: ["src/api/release-risk.ts"], metadata: { property: "riskLevel" }, evidence: [{ id: "evidence-1", path: "src/api/release-risk.ts", label: "optional property became required", detail: "riskLevel? changed to riskLevel" }] }],
 };
-const workspace: Workspace = { id: "workspace-1", name: "Fixture release", repositoryPath: "D:/fixture", commits: [], createdAt: "2026-07-19T00:00:00.000Z", updatedAt: "2026-07-19T00:00:00.000Z" };
+const workspace: Workspace = { id: "workspace-1", name: "Fixture release", repositoryPath: "D:/fixture", source: { kind: "local", value: "D:/fixture" }, commits: [], createdAt: "2026-07-19T00:00:00.000Z", updatedAt: "2026-07-19T00:00:00.000Z" };
 
 describe("release artifacts", () => {
   it("makes a contract test and evidence-led Markdown brief", () => {

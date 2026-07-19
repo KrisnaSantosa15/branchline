@@ -9,5 +9,6 @@ output/
 fixtures/release-fixture/
 data/*.db
 data/*.db-*
+data/remote-repositories/
 .env
 .env.local

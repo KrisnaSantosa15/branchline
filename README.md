@@ -2,7 +2,7 @@
 
 > **Run the release that will never happen.**
 
-Branchline is an evidence-led release-impact rehearsal workspace for local Git changes. It reads a selected diff, maps affected contracts and source consumers, lets a release captain test rollout choices in a deterministic simulation, and turns the safer path into an exportable release brief with testable mitigations.
+Branchline is an evidence-led release-impact rehearsal workspace for local or public remote Git changes. It reads a selected diff, maps affected contracts and source consumers, lets a release captain test rollout choices in a deterministic simulation, and turns the safer path into an exportable release brief with testable mitigations.
 
 It is deliberately not an outage oracle. Branchline labels its outputs as **scenario-based rehearsal results**, links them to repository evidence, and keeps a human in charge of every release decision.
 
@@ -11,7 +11,7 @@ It is deliberately not an outage oracle. Branchline labels its outputs as **scen
 Most code-review tools stop at “this diff looks risky.” Branchline closes the loop:
 
 ```text
-Real local Git diff
+Real Git diff
   → evidence map of changed contracts and consumers
   → stateful release rehearsal
   → branching rollout decisions
@@ -22,7 +22,7 @@ The result is a working release decision tool, not a chat UI that summarizes a p
 
 ## Features
 
-- Connect a real local Git work tree, constrained to a configured approved root.
+- Connect a real local Git work tree, constrained to a configured approved root, or a credential-free public HTTPS Git URL shallow-cloned into a managed cache.
 - Select base and head commits to inspect an actual diff.
 - Analyze TypeScript/JavaScript changes for optional-to-required contract changes, routes, exports, tests, dependencies, configuration, and migrations.
 - Surface an evidence graph spanning changed files, contracts, direct source consumers, and tests.
@@ -37,7 +37,7 @@ The result is a working release decision tool, not a chat UI that summarizes a p
 
 - Next.js 16 + React + TypeScript
 - SQLite via `better-sqlite3`
-- `simple-git` for controlled local Git reads
+- `simple-git` for controlled Git reads and shallow bare remote clones
 - OpenAI Responses API for optional GPT-5.6 suggestions
 - Vitest for engine verification
 - Playwright CLI for live browser workflow verification
@@ -76,6 +76,7 @@ OPENAI_MODEL=gpt-5.6
 
 # Branchline rejects repository paths outside this root.
 BRANCHLINE_REPO_ROOT=D:\\Projects\\exploration
+
 ```
 
 `gpt-5.6` is the GPT-5.6 Sol alias. It is invoked through the Responses API only after the user selects redacted evidence. See the [official model documentation](https://developers.openai.com/api/docs/models/gpt-5.6-sol).
@@ -97,13 +98,15 @@ Branchline includes a repo-scoped `$branchline` skill at [`.agents/skills/branch
 
 ```powershell
 npm run branchline -- "D:\projects\service-api"
+# Or use a public HTTPS Git source:
+npm run branchline -- "https://github.com/org/service-api.git"
 ```
 
 This route needs no separate model key: Codex reasons over the locally generated, redacted evidence. A standalone browser app cannot access or forward the user's Codex/ChatGPT credentials, so its optional advisor is intentionally configured separately.
 
 ## Privacy and safety
 
-- Branchline reads only the local repository path the user submits and only when it is inside `BRANCHLINE_REPO_ROOT`.
+- Branchline reads local repositories only inside `BRANCHLINE_REPO_ROOT`. It also accepts credential-free public HTTPS Git URLs, which it shallow-clones as bare repositories into its own managed cache.
 - It does not execute repository code, run arbitrary tests, make pull requests, deploy, or contact external systems.
 - Potential secrets are redacted before any optional OpenAI request is prepared.
 - GPT-5.6 suggestions are proposals validated as structured data; they never alter scenario metrics or apply changes automatically.

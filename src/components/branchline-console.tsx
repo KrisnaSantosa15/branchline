@@ -48,7 +48,7 @@ function DecisionButton({ strategy, label, detail, disabled, onClick }: { strate
 
 export function BranchlineConsole() {
   const [name, setName] = useState("Release control room");
-  const [repositoryPath, setRepositoryPath] = useState("");
+  const [repositorySource, setRepositorySource] = useState("");
   const [workspace, setWorkspace] = useState<Workspace>();
   const [recentWorkspaces, setRecentWorkspaces] = useState<Workspace[]>([]);
   const [baseCommit, setBaseCommit] = useState("");
@@ -81,16 +81,21 @@ export function BranchlineConsole() {
       .catch(() => setRecentWorkspaces([]));
   }, []);
 
-  const pathHint = useMemo(
-    () => (repositoryPath ? "Only a local Git work tree inside BRANCHLINE_REPO_ROOT is accepted." : "Paste a local repository path. Branchline never executes its code."),
-    [repositoryPath],
+  const sourceHint = useMemo(
+    () => {
+      if (!repositorySource) return "Paste a local Git path or a public HTTPS Git URL. Branchline never executes repository code.";
+      return repositorySource.startsWith("https://")
+        ? "Branchline makes a shallow, bare clone in its managed local cache. Credentialed, localhost, and non-HTTPS URLs are rejected."
+        : "Local repositories must stay inside BRANCHLINE_REPO_ROOT. Branchline reads Git history only.";
+    },
+    [repositorySource],
   );
 
   const connect = async () => {
     setBusy("connect");
     setNotice(undefined);
     try {
-      const result = await api<WorkspaceResponse>("/api/workspaces", { method: "POST", body: JSON.stringify({ name, repositoryPath }) });
+      const result = await api<WorkspaceResponse>("/api/workspaces", { method: "POST", body: JSON.stringify({ name, source: repositorySource }) });
       setWorkspace(result.workspace);
       setBaseCommit(result.workspace.commits[1]?.hash ?? result.workspace.commits[0]?.hash ?? "");
       setHeadCommit(result.workspace.commits[0]?.hash ?? "");
@@ -114,7 +119,7 @@ export function BranchlineConsole() {
     try {
       const result = await api<WorkspaceStateResponse>(`/api/workspaces/${id}`);
       setWorkspace(result.workspace);
-      setRepositoryPath(result.workspace.repositoryPath);
+      setRepositorySource(result.workspace.source.value);
       setName(result.workspace.name);
       setAnalysis(result.analysis);
       setMitigations(result.mitigations);
@@ -306,11 +311,11 @@ export function BranchlineConsole() {
             <input value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Checkout API release" />
           </label>
           <label className="intake__path">
-            <span>Local Git repository path</span>
-            <input value={repositoryPath} onChange={(event) => setRepositoryPath(event.target.value)} placeholder="D:\\projects\\service-api" spellCheck={false} />
-            <small>{pathHint}</small>
+            <span>Git source</span>
+            <input value={repositorySource} onChange={(event) => setRepositorySource(event.target.value)} placeholder="D:\\projects\\service-api or https://github.com/org/repo.git" spellCheck={false} />
+            <small>{sourceHint}</small>
           </label>
-          <button className="button button--primary" type="button" onClick={connect} disabled={busy === "connect" || !repositoryPath.trim()}>
+          <button className="button button--primary" type="button" onClick={connect} disabled={busy === "connect" || !repositorySource.trim()}>
             <GitCommitHorizontal size={18} /> {busy === "connect" ? "Checking Git…" : "Connect repository"}
           </button>
         </div>
@@ -320,7 +325,7 @@ export function BranchlineConsole() {
             <span>Recent control rooms</span>
             {recentWorkspaces.slice(0, 4).map((item) => (
               <button type="button" key={item.id} onClick={() => resumeWorkspace(item.id)} disabled={busy === "resume"}>
-                <GitCommitHorizontal size={13} /> <b>{item.name}</b> <code>{item.repositoryPath.split(/[\\/]/).pop()}</code>
+                <GitCommitHorizontal size={13} /> <b>{item.name}</b> <code>{item.source.value.replace(/\/$/, "").split(/[\\/]/).pop()}</code>
               </button>
             ))}
           </div>
@@ -328,7 +333,7 @@ export function BranchlineConsole() {
 
         {workspace && (
           <div className="commit-picker">
-            <div className="repo-chip"><span className="pulse" /> CONNECTED <code>{workspace.repositoryPath}</code></div>
+            <div className="repo-chip"><span className="pulse" /> {workspace.source.kind.toUpperCase()} SOURCE <code>{workspace.source.value}</code></div>
             <label>
               <span>Base / known-safe</span>
               <select value={baseCommit} onChange={(event) => setBaseCommit(event.target.value)}>

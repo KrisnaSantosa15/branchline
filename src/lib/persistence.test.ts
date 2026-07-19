@@ -20,7 +20,7 @@ beforeEach(() => resetDatabaseForTests());
 
 describe("SQLite persistence", () => {
   it("persists a workspace, analysis, scenario, and mitigation decision", () => {
-    const workspace = createWorkspace({ name: "Persistence test", repositoryPath: "D:/fixture", commits: [] });
+    const workspace = createWorkspace({ name: "Persistence test", repositoryPath: "D:/fixture", source: { kind: "local", value: "D:/fixture" }, commits: [] });
     const inspected = analysis(workspace.id);
     saveAnalysis(inspected);
     const scenario = saveScenario(startScenario(workspace.id, inspected));

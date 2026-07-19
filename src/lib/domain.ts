@@ -58,10 +58,16 @@ export type AnalysisResult = {
   createdAt: string;
 };
 
+export type RepositorySource = {
+  kind: "local" | "remote";
+  value: string;
+};
+
 export type Workspace = {
   id: string;
   name: string;
   repositoryPath: string;
+  source: RepositorySource;
   commits: CommitInfo[];
   createdAt: string;
   updatedAt: string;

@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createWorkspace, listWorkspaces } from "@/lib/persistence";
-import { connectRepository, RepositoryError } from "@/lib/repository";
+import { connectRepositorySource, RepositoryError } from "@/lib/repository";
 
 const workspaceSchema = z.object({
   name: z.string().trim().min(2).max(80),
-  repositoryPath: z.string().trim().min(1),
+  source: z.string().trim().min(1),
 });
 
 export async function GET() {
@@ -15,8 +15,8 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const input = workspaceSchema.parse(await request.json());
-    const repository = await connectRepository(input.repositoryPath);
-    const workspace = createWorkspace({ name: input.name, repositoryPath: repository.repositoryPath, commits: repository.commits });
+    const repository = await connectRepositorySource(input.source);
+    const workspace = createWorkspace({ name: input.name, repositoryPath: repository.repositoryPath, source: repository.source, commits: repository.commits });
     return NextResponse.json({ workspace }, { status: 201 });
   } catch (error) {
     const message = error instanceof RepositoryError || error instanceof z.ZodError ? error.message : "Branchline could not connect this repository.";

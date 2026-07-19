@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { dirname, join } from "node:path";
 import type { AnalysisResult, Mitigation, MitigationStatus, Scenario, Workspace } from "@/lib/domain";
 
-type StoredWorkspace = Omit<Workspace, "commits"> & { commits: Workspace["commits"] };
+type WorkspaceRow = { id: string; name: string; repository_path: string; repository_source_json?: string | null; commits_json: string; created_at: string; updated_at: string };
 
 let sqlite: Database.Database | undefined;
 
@@ -19,6 +19,7 @@ function database() {
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       repository_path TEXT NOT NULL,
+      repository_source_json TEXT,
       commits_json TEXT NOT NULL,
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
@@ -46,45 +47,41 @@ function database() {
       updated_at TEXT NOT NULL
     );
   `);
+  const columns = database().prepare("PRAGMA table_info(workspaces)").all() as Array<{ name: string }>;
+  if (!columns.some((column) => column.name === "repository_source_json")) {
+    database().exec("ALTER TABLE workspaces ADD COLUMN repository_source_json TEXT");
+  }
   return sqlite;
+}
+
+function hydrateWorkspace(row: WorkspaceRow): Workspace {
+  return {
+    id: row.id,
+    name: row.name,
+    repositoryPath: row.repository_path,
+    source: row.repository_source_json ? JSON.parse(row.repository_source_json) : { kind: "local", value: row.repository_path },
+    commits: JSON.parse(row.commits_json),
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
 }
 
 export function createWorkspace(input: Omit<Workspace, "id" | "createdAt" | "updatedAt">): Workspace {
   const now = new Date().toISOString();
   const workspace: Workspace = { ...input, id: randomUUID(), createdAt: now, updatedAt: now };
   database()
-    .prepare("INSERT INTO workspaces (id, name, repository_path, commits_json, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)")
-    .run(workspace.id, workspace.name, workspace.repositoryPath, JSON.stringify(workspace.commits), now, now);
+    .prepare("INSERT INTO workspaces (id, name, repository_path, repository_source_json, commits_json, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)")
+    .run(workspace.id, workspace.name, workspace.repositoryPath, JSON.stringify(workspace.source), JSON.stringify(workspace.commits), now, now);
   return workspace;
 }
 
 export function getWorkspace(id: string): Workspace | undefined {
-  const row = database().prepare("SELECT * FROM workspaces WHERE id = ?").get(id) as
-    | { id: string; name: string; repository_path: string; commits_json: string; created_at: string; updated_at: string }
-    | undefined;
-  if (!row) return undefined;
-  const stored: StoredWorkspace = {
-    id: row.id,
-    name: row.name,
-    repositoryPath: row.repository_path,
-    commits: JSON.parse(row.commits_json),
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  };
-  return stored;
+  const row = database().prepare("SELECT * FROM workspaces WHERE id = ?").get(id) as WorkspaceRow | undefined;
+  return row ? hydrateWorkspace(row) : undefined;
 }
 
 export function listWorkspaces(): Workspace[] {
-  return (database().prepare("SELECT * FROM workspaces ORDER BY updated_at DESC, created_at DESC").all() as Array<{ id: string; name: string; repository_path: string; commits_json: string; created_at: string; updated_at: string }>).map(
-    (row) => ({
-      id: row.id,
-      name: row.name,
-      repositoryPath: row.repository_path,
-      commits: JSON.parse(row.commits_json),
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
-    }),
-  );
+  return (database().prepare("SELECT * FROM workspaces ORDER BY updated_at DESC, created_at DESC").all() as WorkspaceRow[]).map(hydrateWorkspace);
 }
 
 export function saveAnalysis(analysis: AnalysisResult): AnalysisResult {
