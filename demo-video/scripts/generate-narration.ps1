@@ -1,6 +1,6 @@
 param(
   [string]$Voice = "Microsoft Zira Desktop",
-  [int]$Rate = 2
+  [int]$Rate = 1
 )
 
 $ErrorActionPreference = "Stop"

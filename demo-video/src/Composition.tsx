@@ -6,7 +6,7 @@ export const MyComposition = () => {
     <Composition
       id="BranchlineDemo"
       component={BranchlineDemo}
-      durationInFrames={5250}
+      durationInFrames={2250}
       fps={30}
       width={1920}
       height={1080}

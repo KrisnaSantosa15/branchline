@@ -1,21 +1,11 @@
-Most release tools arrive after a deployment starts failing. Branchline gives teams a different moment to act: before the release reaches the world. It turns a real Git diff into a rehearsal room, where the evidence, the options, and the accountable decision stay connected.
+Before the release ships, Branchline turns a real Git change into evidence you can see.
 
-Here is the problem. A change that makes one response field required can look tiny in a pull request. But an older client can still depend on the optional contract. The visible diff is small. The release blast radius is not.
+One required field. One legacy client. One release path worth rehearsing.
 
-Branchline starts with proof. Connect a local repository or a public Git URL, choose the safe base and the candidate commit, and it maps changed files, contracts, consumers, tests, dependencies, configuration, and migrations. Every risk signal points back to committed source evidence. It never executes target code.
+Map the contract, its consumers, tests, and blast radius. Then play the options: full rollout, canary, compatibility adapter, or rollback.
 
-Next, Branchline turns that evidence into a deterministic release rehearsal. This is not a prediction dashboard and it is not fake production telemetry. The rules show why a full rollout affects all traffic, why a canary exposes a narrow legacy-client failure path, and why a compatibility adapter can protect users while teams add the right contract test.
+Seal the evidence for the Release Council. Specialist agents—including GPT-5.6 and Codex—return reviewable perspectives. The human still owns the decision.
 
-The release captain can branch the exact moment, test an alternate path, and compare the outcomes side by side. The safer path becomes concrete: canary first, keep a compatibility window, verify the legacy contract, define the rollback trigger. A full rollout becomes visible as an explicit, evidence-linked tradeoff instead of a guess in a meeting.
+Make that decision enforceable with a portable policy, then bring the same proof to every coding harness through read-only MCP.
 
-But release confidence needs more than one perspective. Branchline seals selected, redacted Git evidence into one immutable Council packet. Contract, test and observability, rollout, and security specialists all review the exact same hash. Their claims must cite that packet. Agreements are clear; disagreements are never averaged away.
-
-This is where GPT-5.6 and Codex contribute without owning the release. In the Branchline skill or read-only MCP server, they reason over the narrow evidence packet and return reviewable specialist perspectives. No model controls scenario metrics, pushes code, deploys, or approves a release.
-
-The decision remains accountable. A human records approved, blocked, accepted risk, or request evidence, with rationale and follow-ups. That release ledger travels with the Markdown and JSON exports, so the team keeps the why—not just a green check.
-
-Then make the standard executable. A portable policy can require contract compatibility, test confidence, Council coverage, and a human decision. The same check runs locally or as a GitHub Action, publishing a transparent report instead of a black-box score.
-
-Finally, Branchline is built to meet developers where they work. Install the skills with npx. Use native Codex or Claude Code plugins. Or connect the read-only MCP server to any compatible agent harness for release analysis, evidence packs, rollout comparisons, and policy checks.
-
-Branchline is not an outage oracle. It is a working release decision system: real Git evidence, deterministic rehearsal, specialist challenge, human accountability, and portable enforcement. Map it. Rehearse it. Then decide.
+Branchline. Map it. Rehearse it. Then decide.

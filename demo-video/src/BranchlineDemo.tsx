@@ -1,128 +1,66 @@
-import { Audio, AbsoluteFill, Img, interpolate, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
-import type { Caption } from "@remotion/captions";
-import captionsJson from "./captions.json";
+import { AbsoluteFill, Audio, Img, interpolate, staticFile, useCurrentFrame } from "remotion";
 
-const captions = captionsJson as Caption[];
-const C = {
-  ink: "#07101f",
-  navy: "#0b1930",
-  line: "rgba(219, 240, 255, 0.18)",
-  paper: "#ecf5ff",
-  muted: "#9ab0c9",
-  mint: "#69e6c5",
-  amber: "#ffbf5b",
-  coral: "#ff7272",
-  blue: "#7db8ff",
-};
+const ink = "#15121f";
+const paper = "#f7f6fb";
+const purple = "#7959f5";
+const violet = "#b980ff";
+const mint = "#c7ff68";
+const coral = "#ff786a";
+const blue = "#75b6ff";
 
-const scene = (frame: number, start: number, end: number) => interpolate(frame, [start, start + 18, end - 18, end], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
-const pop = (frame: number, start: number) => interpolate(frame, [start, start + 18], [0.92, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+const scene = (frame: number, start: number, end: number) => interpolate(frame, [start, start + 12, end - 12, end], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+const enter = (frame: number, start: number) => interpolate(frame, [start, start + 16], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+const inScale = (frame: number, start: number) => interpolate(frame, [start, start + 16], [0.9, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
-const Eyebrow: React.FC<{ children: React.ReactNode; accent?: string }> = ({ children, accent = C.mint }) => (
-  <div style={{ color: accent, fontSize: 26, fontWeight: 800, letterSpacing: "0.18em", textTransform: "uppercase" }}>{children}</div>
-);
+const Label: React.FC<{ children: React.ReactNode; color?: string }> = ({ children, color = purple }) => <div style={{ color, fontSize: 24, fontWeight: 900, letterSpacing: "0.14em", textTransform: "uppercase" }}>{children}</div>;
 
-const Metric: React.FC<{ label: string; value: string; color: string; frame: number; start: number }> = ({ label, value, color, frame, start }) => (
-  <div style={{ opacity: scene(frame, start, start + 210), scale: pop(frame, start), minWidth: 196, border: `1px solid ${C.line}`, borderTop: `4px solid ${color}`, borderRadius: 20, padding: "25px 28px", background: "rgba(9, 25, 48, 0.8)", boxShadow: "0 20px 50px rgba(0,0,0,0.2)" }}>
-    <div style={{ color: C.muted, fontSize: 21, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.09em" }}>{label}</div>
-    <div style={{ color, fontSize: 58, lineHeight: 1.05, fontWeight: 800, marginTop: 10 }}>{value}</div>
-  </div>
-);
+const FloatingDot: React.FC<{ frame: number; x: number; y: number; size: number; color: string; delay?: number }> = ({ frame, x, y, size, color, delay = 0 }) => <div style={{ position: "absolute", left: x, top: y, width: size, height: size, borderRadius: 999, background: color, opacity: 0.8, scale: interpolate(frame, [delay, delay + 70, 2250], [0.6, 1.12, 0.76], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }), translate: `0 ${Math.sin((frame + delay) / 38) * 15}px`, filter: "blur(0.4px)" }} />;
 
-const ProductFrame: React.FC<{ file: string; frame: number; start: number; end: number; label: string; shift?: number; width?: number }> = ({ file, frame, start, end, label, shift = 0, width = 1250 }) => (
-  <div style={{ opacity: scene(frame, start, end), scale: pop(frame, start), translate: `${interpolate(frame, [start, end], [shift, -shift], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })}px 0`, width, borderRadius: 30, overflow: "hidden", border: "1px solid rgba(222,242,255,0.32)", background: C.navy, boxShadow: "0 38px 90px rgba(0,0,0,0.46)" }}>
-    <div style={{ height: 54, padding: "0 24px", display: "flex", alignItems: "center", gap: 10, background: "#152942", borderBottom: `1px solid ${C.line}` }}>
-      <span style={{ width: 13, height: 13, borderRadius: 13, background: C.coral }} />
-      <span style={{ width: 13, height: 13, borderRadius: 13, background: C.amber }} />
-      <span style={{ width: 13, height: 13, borderRadius: 13, background: C.mint }} />
-      <span style={{ marginLeft: 16, color: "#c9d7ea", fontSize: 20, fontWeight: 700 }}>{label}</span>
-    </div>
-    <Img src={staticFile(`screens/${file}`)} style={{ display: "block", width: "100%" }} />
-  </div>
-);
+const ProductWindow: React.FC<{ file: string; label: string; frame: number; start: number; end: number; width: number; rotate?: number; x?: number; y?: number }> = ({ file, label, frame, start, end, width, rotate = 0, x = 0, y = 0 }) => <div style={{ position: "absolute", left: x, top: y, width, opacity: scene(frame, start, end), scale: inScale(frame, start), rotate: `${rotate + interpolate(frame, [start, end], [4, -4], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })}deg`, boxShadow: "0 40px 100px rgba(42, 20, 77, 0.27)", border: "1px solid rgba(38, 25, 58, 0.15)", overflow: "hidden", borderRadius: 32, background: "#15243b" }}>
+  <div style={{ height: 56, display: "flex", alignItems: "center", gap: 10, padding: "0 23px", background: "#f7f6fb", color: ink, fontSize: 20, fontWeight: 800 }}><span style={{ width: 12, height: 12, background: coral, borderRadius: 99 }} /><span style={{ width: 12, height: 12, background: "#ffc956", borderRadius: 99 }} /><span style={{ width: 12, height: 12, background: mint, borderRadius: 99 }} /><span style={{ marginLeft: 12 }}>{label}</span></div>
+  <Img src={staticFile(`screens/${file}`)} style={{ width: "100%", display: "block" }} />
+</div>;
 
-const CaptionBar: React.FC = () => {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  const active = captions.find((caption) => frame * 1000 / fps >= caption.startMs && frame * 1000 / fps < caption.endMs);
-  if (!active) return null;
-  return <div style={{ position: "absolute", left: 180, right: 180, bottom: 72, display: "flex", justifyContent: "center" }}><div style={{ maxWidth: 1350, padding: "17px 30px", borderRadius: 18, background: "rgba(4, 12, 25, 0.86)", border: "1px solid rgba(233,245,255,0.22)", color: C.paper, fontSize: 34, fontWeight: 700, lineHeight: 1.25, textAlign: "center", boxShadow: "0 12px 32px rgba(0,0,0,0.25)" }}>{active.text}</div></div>;
-};
+const Pointer: React.FC<{ frame: number; start: number; x: number; y: number }> = ({ frame, start, x, y }) => <div style={{ position: "absolute", left: x, top: y, opacity: enter(frame, start), scale: inScale(frame, start), fontSize: 64, lineHeight: 1, color: ink, textShadow: "0 7px 12px rgba(0,0,0,0.18)", rotate: "-18deg", zIndex: 10 }}>☝</div>;
+
+const Pill: React.FC<{ children: React.ReactNode; color?: string; text?: string }> = ({ children, color = mint, text = ink }) => <div style={{ display: "inline-flex", alignItems: "center", padding: "14px 20px", borderRadius: 999, background: color, color: text, fontSize: 23, fontWeight: 900, letterSpacing: "0.04em" }}>{children}</div>;
 
 export const BranchlineDemo: React.FC = () => {
   const frame = useCurrentFrame();
-  const intro = scene(frame, 0, 480);
-  const problem = scene(frame, 390, 960);
-  const impact = scene(frame, 870, 1590);
-  const rehearsal = scene(frame, 1500, 2370);
-  const paths = scene(frame, 2250, 3030);
-  const council = scene(frame, 2910, 3780);
-  const decision = scene(frame, 3660, 4380);
-  const policy = scene(frame, 4260, 4830);
-  const mcp = scene(frame, 4710, 5220);
-  const outro = scene(frame, 5100, 5250);
+  const hook = scene(frame, 0, 210);
+  const contract = scene(frame, 150, 450);
+  const evidence = scene(frame, 390, 690);
+  const rehearsal = scene(frame, 630, 990);
+  const council = scene(frame, 930, 1350);
+  const decision = scene(frame, 1290, 1680);
+  const policy = scene(frame, 1620, 1950);
+  const harness = scene(frame, 1890, 2130);
+  const finale = scene(frame, 2070, 2250);
 
-  return (
-    <AbsoluteFill style={{ background: `radial-gradient(circle at 18% 9%, #1a3c60 0, transparent 29%), radial-gradient(circle at 88% 82%, #174a48 0, transparent 31%), linear-gradient(135deg, ${C.ink}, #101e37)`, color: C.paper, fontFamily: "Aptos Display, Inter, Arial, sans-serif", overflow: "hidden" }}>
-      <Audio src={staticFile("narration.wav")} />
-      <div style={{ position: "absolute", inset: 0, opacity: 0.22, backgroundImage: "linear-gradient(rgba(182,220,255,0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(182,220,255,0.12) 1px, transparent 1px)", backgroundSize: "72px 72px", translate: `${-(frame % 72)}px ${-(frame % 72)}px` }} />
-      <div style={{ position: "absolute", top: -180, right: -160, width: 580, height: 580, borderRadius: "50%", background: "rgba(105, 230, 197, 0.16)", filter: "blur(54px)", scale: interpolate(frame, [0, 5250], [0.9, 1.18]) }} />
-      <div style={{ position: "absolute", top: 62, left: 82, display: "flex", alignItems: "center", gap: 17, zIndex: 4 }}><div style={{ width: 42, height: 42, borderRadius: 12, background: C.mint, boxShadow: "0 0 36px rgba(105,230,197,0.6)" }} /><div style={{ fontSize: 29, fontWeight: 900, letterSpacing: "0.1em" }}>BRANCHLINE</div><div style={{ color: C.muted, fontSize: 22, fontWeight: 700 }}>release rehearsal</div></div>
-      <div style={{ position: "absolute", top: 72, right: 82, color: C.muted, fontSize: 21, fontWeight: 700, letterSpacing: "0.08em" }}>OPENAI BUILD WEEK · DEVELOPER TOOLS</div>
+  return <AbsoluteFill style={{ background: paper, color: ink, fontFamily: "Aptos Display, Inter, Arial, sans-serif", overflow: "hidden" }}>
+    <Audio src={staticFile("bed.wav")} volume={0.36} />
+    <Audio src={staticFile("narration.wav")} volume={1} />
+    <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 73% 18%, rgba(184,128,255,0.68), transparent 25%), radial-gradient(circle at 17% 80%, rgba(199,255,104,0.63), transparent 28%), radial-gradient(circle at 76% 86%, rgba(117,182,255,0.46), transparent 24%)" }} />
+    <FloatingDot frame={frame} x={120} y={190} size={18} color={purple} delay={0} /><FloatingDot frame={frame} x={1740} y={290} size={30} color={mint} delay={200} /><FloatingDot frame={frame} x={1540} y={810} size={24} color={coral} delay={420} />
+    <div style={{ position: "absolute", top: 56, left: 70, display: "flex", alignItems: "center", gap: 13, zIndex: 20 }}><div style={{ width: 33, height: 33, borderRadius: 11, background: ink }} /><div style={{ fontWeight: 950, fontSize: 26, letterSpacing: "0.08em" }}>BRANCHLINE</div></div>
+    <div style={{ position: "absolute", top: 60, right: 70, fontSize: 20, fontWeight: 800, letterSpacing: "0.1em", color: "rgba(21,18,31,0.58)" }}>RELEASE REHEARSAL</div>
 
-      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", opacity: intro }}>
-        <div style={{ width: 1440, display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
-          <Eyebrow>Release control, before the incident</Eyebrow>
-          <div style={{ fontSize: 124, lineHeight: 0.96, fontWeight: 900, letterSpacing: "-0.065em", marginTop: 34, maxWidth: 1310 }}>What if a release could <span style={{ color: C.mint }}>rehearse?</span></div>
-          <div style={{ color: C.muted, fontSize: 40, lineHeight: 1.35, marginTop: 38, maxWidth: 960 }}>Real Git evidence. Deterministic impact. Human accountability.</div>
-          <div style={{ marginTop: 62, display: "flex", gap: 18 }}>
-            {["MAP", "REHEARSE", "DECIDE"].map((word, index) => <div key={word} style={{ opacity: interpolate(frame, [80 + index * 34, 122 + index * 34], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }), border: `1px solid ${C.line}`, color: index === 2 ? C.ink : C.paper, background: index === 2 ? C.mint : "rgba(8,20,38,0.58)", borderRadius: 999, padding: "16px 28px", fontSize: 24, fontWeight: 900, letterSpacing: "0.12em" }}>{word}</div>)}
-          </div>
-        </div>
-      </div>
+    <div style={{ position: "absolute", inset: 0, opacity: hook, display: "flex", alignItems: "center", justifyContent: "center" }}><div style={{ width: 1450, textAlign: "center" }}><Label>Before it ships.</Label><div style={{ fontSize: 137, letterSpacing: "-0.075em", fontWeight: 950, lineHeight: 0.91, marginTop: 30 }}>Rehearse the<br /><span style={{ color: purple }}>release.</span></div><div style={{ fontSize: 37, fontWeight: 650, marginTop: 34, color: "rgba(21,18,31,0.64)" }}>A product demo about seeing the path before it breaks.</div><div style={{ display: "flex", justifyContent: "center", gap: 14, marginTop: 48 }}><Pill>REAL GIT</Pill><Pill color={purple} text={paper}>DETERMINISTIC</Pill><Pill color={ink} text={paper}>HUMAN-OWNED</Pill></div></div></div>
 
-      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", opacity: problem }}>
-        <div style={{ width: 1500, display: "grid", gridTemplateColumns: "1fr 0.9fr", gap: 96, alignItems: "center" }}>
-          <div><Eyebrow accent={C.coral}>The release-review blind spot</Eyebrow><div style={{ fontSize: 90, lineHeight: 1.03, fontWeight: 900, letterSpacing: "-0.055em", marginTop: 30 }}>One line can change <span style={{ color: C.coral }}>everything.</span></div><div style={{ color: C.muted, fontSize: 34, lineHeight: 1.36, marginTop: 28 }}>A contract field flips from optional to required. The code diff is small. The legacy-client risk is not.</div></div>
-          <div style={{ border: "1px solid rgba(255,190,91,0.44)", borderRadius: 28, padding: 42, background: "rgba(18,33,55,0.86)", boxShadow: "0 28px 75px rgba(0,0,0,0.36)", scale: pop(frame, 390) }}><div style={{ color: C.muted, fontSize: 24, fontWeight: 800 }}>release-risk.ts</div><div style={{ marginTop: 34, fontFamily: "Cascadia Code, Consolas, monospace", fontSize: 31, lineHeight: 1.65 }}><div style={{ color: C.muted }}>interface ReleaseRisk {'{'}</div><div style={{ color: C.coral, marginLeft: 32 }}>− riskLevel?: string</div><div style={{ color: C.mint, marginLeft: 32 }}>+ riskLevel: string</div><div style={{ color: C.muted }}>{'}'}</div></div><div style={{ display: "flex", gap: 14, marginTop: 34 }}><div style={{ color: C.ink, background: C.coral, padding: "10px 16px", borderRadius: 11, fontWeight: 900 }}>CONTRACT TIGHTENING</div><div style={{ color: C.ink, background: C.amber, padding: "10px 16px", borderRadius: 11, fontWeight: 900 }}>LEGACY CLIENTS</div></div></div>
-        </div>
-      </div>
+    <div style={{ position: "absolute", inset: 0, opacity: contract, display: "flex", alignItems: "center", justifyContent: "center" }}><div style={{ width: 1480, display: "grid", gridTemplateColumns: "0.9fr 1.1fr", alignItems: "center", gap: 120 }}><div><Label color={coral}>A small diff. A big risk.</Label><div style={{ fontSize: 91, fontWeight: 950, letterSpacing: "-0.065em", lineHeight: 0.97, marginTop: 24 }}>One field<br />changes the<br /><span style={{ color: coral }}>release.</span></div><div style={{ marginTop: 32, fontSize: 31, color: "rgba(21,18,31,0.64)", lineHeight: 1.32 }}>A required response field can leave a legacy client behind.</div></div><div style={{ padding: 45, borderRadius: 34, background: ink, color: paper, boxShadow: "0 35px 80px rgba(46,20,70,0.22)", scale: inScale(frame, 150), rotate: "-3deg" }}><div style={{ fontSize: 22, color: "rgba(247,246,251,0.52)", fontFamily: "Cascadia Code, Consolas, monospace" }}>release-risk.ts</div><div style={{ marginTop: 37, fontFamily: "Cascadia Code, Consolas, monospace", fontSize: 38, lineHeight: 1.7 }}><div style={{ color: "rgba(247,246,251,0.52)" }}>interface ReleaseRisk {'{'}</div><div style={{ color: coral, marginLeft: 38 }}>− riskLevel?: string</div><div style={{ color: mint, marginLeft: 38 }}>+ riskLevel: string</div><div style={{ color: "rgba(247,246,251,0.52)" }}>{'}'}</div></div><div style={{ marginTop: 22 }}><Pill color={mint}>CONTRACT TIGHTENED</Pill></div></div></div></div>
 
-      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", opacity: impact }}>
-        <div style={{ width: 1680, display: "flex", flexDirection: "column", alignItems: "center" }}><div style={{ alignSelf: "flex-start", marginBottom: 30 }}><Eyebrow>01 / Evidence over intuition</Eyebrow><div style={{ fontSize: 64, fontWeight: 900, letterSpacing: "-0.04em", marginTop: 14 }}>Git evidence becomes a release map.</div></div><ProductFrame file="impact.png" frame={frame} start={870} end={1590} label="Real Branchline impact map" shift={-24} width={1120} /><div style={{ position: "absolute", right: 118, top: 252, borderRadius: 18, padding: "18px 25px", color: C.ink, background: C.mint, fontSize: 25, fontWeight: 900, opacity: interpolate(frame, [1140, 1180], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) }}>3 evidence links · 0 hand-waving</div></div>
-      </div>
+    <div style={{ position: "absolute", inset: 0, opacity: evidence }}><div style={{ position: "absolute", top: 158, left: 155 }}><Label>Map the real change</Label><div style={{ fontSize: 77, fontWeight: 950, letterSpacing: "-0.06em", marginTop: 16 }}>Follow the evidence.</div></div><ProductWindow file="impact.png" label="Branchline impact map" frame={frame} start={390} end={690} width={1040} x={500} y={268} rotate={-2} /><div style={{ position: "absolute", left: 118, top: 464, opacity: enter(frame, 455), scale: inScale(frame, 455) }}><Pill color={mint}>CONTRACT</Pill><div style={{ width: 300, height: 5, background: mint, marginTop: 14, rotate: "-13deg", transformOrigin: "left" }} /></div><div style={{ position: "absolute", right: 102, top: 560, opacity: enter(frame, 490), scale: inScale(frame, 490) }}><Pill color={purple} text={paper}>LEGACY CLIENT</Pill><div style={{ width: 255, height: 5, background: purple, marginTop: 14, rotate: "158deg", transformOrigin: "right" }} /></div><Pointer frame={frame} start={530} x={1245} y={570} /></div>
 
-      <div style={{ position: "absolute", inset: 0, opacity: rehearsal }}>
-        <div style={{ position: "absolute", top: 190, left: 180 }}><Eyebrow accent={C.amber}>02 / Simulate, never prophesy</Eyebrow><div style={{ fontSize: 64, fontWeight: 900, letterSpacing: "-0.04em", marginTop: 14 }}>Every release choice changes a rule-bound world.</div></div>
-        <div style={{ position: "absolute", left: 158, top: 358 }}><ProductFrame file="rehearse.png" frame={frame} start={1500} end={2370} label="Real deterministic rehearsal" shift={-45} /></div>
-        <div style={{ position: "absolute", right: 116, top: 760, display: "flex", gap: 16 }}><Metric label="Traffic" value="100%" color={C.coral} frame={frame} start={1710} /><Metric label="Errors" value="71%" color={C.coral} frame={frame} start={1760} /><Metric label="Confidence" value="86" color={C.mint} frame={frame} start={1810} /></div>
-      </div>
+    <div style={{ position: "absolute", inset: 0, opacity: rehearsal }}><div style={{ position: "absolute", top: 145, left: 155 }}><Label color={purple}>Play the release</Label><div style={{ fontSize: 76, fontWeight: 950, letterSpacing: "-0.06em", marginTop: 15 }}>Test the safer move.</div></div><ProductWindow file="rehearse.png" label="Deterministic rehearsal" frame={frame} start={630} end={990} width={1000} x={115} y={313} rotate={2} /><div style={{ position: "absolute", right: 120, top: 280, width: 560, display: "flex", flexDirection: "column", gap: 17 }}><div style={{ opacity: enter(frame, 705), scale: inScale(frame, 705), padding: "23px 28px", borderRadius: 22, background: coral, color: ink, fontSize: 34, fontWeight: 950 }}>FULL ROLLOUT <span style={{ float: "right" }}>71% error</span></div><div style={{ opacity: enter(frame, 745), scale: inScale(frame, 745), padding: "23px 28px", borderRadius: 22, background: mint, color: ink, fontSize: 34, fontWeight: 950 }}>CANARY + ADAPTER <span style={{ float: "right" }}>observe</span></div><div style={{ opacity: enter(frame, 785), scale: inScale(frame, 785), padding: "23px 28px", borderRadius: 22, background: ink, color: paper, fontSize: 29, fontWeight: 850 }}>REHEARSE. BRANCH. COMPARE.</div></div><Pointer frame={frame} start={820} x={738} y={716} /></div>
 
-      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", opacity: paths }}>
-        <div style={{ width: 1510, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 36, alignItems: "stretch" }}>
-          <div style={{ border: "1px solid rgba(255,114,114,0.48)", borderRadius: 30, padding: 54, background: "linear-gradient(155deg, rgba(91,23,39,0.86), rgba(25,28,49,0.84))", scale: pop(frame, 2250) }}><Eyebrow accent={C.coral}>Alternate branch</Eyebrow><div style={{ fontSize: 64, fontWeight: 900, letterSpacing: "-0.05em", marginTop: 25 }}>Full rollout</div><div style={{ marginTop: 48, color: C.coral, fontSize: 97, fontWeight: 900 }}>71%</div><div style={{ fontSize: 29, color: C.muted }}>client error rehearsal outcome</div><div style={{ marginTop: 46, color: C.paper, fontSize: 32, lineHeight: 1.35 }}>All traffic sees the tightened contract before the legacy path is protected.</div></div>
-          <div style={{ border: "1px solid rgba(105,230,197,0.54)", borderRadius: 30, padding: 54, background: "linear-gradient(155deg, rgba(11,75,69,0.86), rgba(20,35,57,0.84))", scale: pop(frame, 2310) }}><Eyebrow>Recommended path</Eyebrow><div style={{ fontSize: 64, fontWeight: 900, letterSpacing: "-0.05em", marginTop: 25 }}>Canary + adapter</div><div style={{ marginTop: 48, color: C.mint, fontSize: 97, fontWeight: 900 }}>observe</div><div style={{ fontSize: 29, color: C.muted }}>narrow failure path, explicit test gate</div><div style={{ marginTop: 46, color: C.paper, fontSize: 32, lineHeight: 1.35 }}>Keep legacy consumers alive. Verify the contract. Define the rollback trigger.</div></div>
-        </div>
-      </div>
+    <div style={{ position: "absolute", inset: 0, opacity: council }}><div style={{ position: "absolute", top: 140, left: 155 }}><Label color={purple}>Challenge the path</Label><div style={{ fontSize: 76, fontWeight: 950, letterSpacing: "-0.06em", marginTop: 15 }}>One packet.<br />Every lens.</div></div><ProductWindow file="council.png" label="Evidence-bound Council" frame={frame} start={930} end={1350} width={950} x={820} y={214} rotate={2} /><div style={{ position: "absolute", left: 130, top: 455, display: "flex", flexDirection: "column", gap: 14 }}>{[["CONTRACT", mint], ["TEST + OBS", blue], ["ROLLOUT", violet], ["SECURITY", coral]].map(([name, color], index) => <div key={name as string} style={{ opacity: enter(frame, 1000 + index * 28), scale: inScale(frame, 1000 + index * 28), width: 360, padding: "19px 24px", background: color as string, borderRadius: 18, fontWeight: 950, fontSize: 30, boxShadow: "0 14px 26px rgba(45,22,73,0.12)" }}>{name as string}</div>)}</div><div style={{ position: "absolute", right: 110, top: 755, opacity: enter(frame, 1150), padding: "18px 21px", color: paper, background: ink, borderRadius: 18, fontFamily: "Cascadia Code, Consolas, monospace", fontWeight: 800, fontSize: 23 }}>HASH BOUND · CLAIM VALIDATED</div></div>
 
-      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", opacity: council }}>
-        <div style={{ width: 1680, display: "flex", flexDirection: "column", alignItems: "center" }}><div style={{ alignSelf: "flex-start", marginBottom: 30 }}><Eyebrow>03 / Challenge the path</Eyebrow><div style={{ fontSize: 64, fontWeight: 900, letterSpacing: "-0.04em", marginTop: 14 }}>One evidence packet. Four specialist lenses.</div></div><ProductFrame file="council.png" frame={frame} start={2910} end={3780} label="Real evidence-bound Council" shift={26} width={1120} /><div style={{ position: "absolute", left: 110, bottom: 178, display: "flex", gap: 12, opacity: interpolate(frame, [3300, 3350], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) }}>{["CONTRACT", "TEST + OBS", "ROLLOUT", "SECURITY"].map((name) => <div key={name} style={{ color: C.ink, background: C.mint, padding: "13px 16px", borderRadius: 12, fontSize: 20, fontWeight: 900 }}>{name}</div>)}</div></div>
-      </div>
+    <div style={{ position: "absolute", inset: 0, opacity: decision }}><div style={{ position: "absolute", top: 145, right: 155, width: 640 }}><Label color={coral}>Accountability stays visible</Label><div style={{ fontSize: 78, fontWeight: 950, letterSpacing: "-0.065em", lineHeight: 0.95, marginTop: 18 }}>Agents advise.<br /><span style={{ color: coral }}>Humans decide.</span></div><div style={{ marginTop: 31, fontSize: 31, lineHeight: 1.3, color: "rgba(21,18,31,0.64)" }}>Every rationale, follow-up, and disagreement remains in the release ledger.</div><div style={{ marginTop: 34 }}><Pill color={coral}>ACCEPTED RISK · ACCOUNTABLE</Pill></div></div><ProductWindow file="decision.png" label="Human decision ledger" frame={frame} start={1290} end={1680} width={1110} x={85} y={252} rotate={-2} /><Pointer frame={frame} start={1460} x={951} y={628} /></div>
 
-      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", opacity: decision }}>
-        <div style={{ width: 1510, display: "grid", gridTemplateColumns: "1.05fr 0.95fr", gap: 58, alignItems: "center" }}><ProductFrame file="decision.png" frame={frame} start={3660} end={4380} label="Real accountable decision ledger" shift={-26} /><div><Eyebrow accent={C.amber}>Human authority stays explicit</Eyebrow><div style={{ fontSize: 76, lineHeight: 1.02, fontWeight: 900, letterSpacing: "-0.055em", marginTop: 25 }}>Agents advise.<br /><span style={{ color: C.amber }}>Humans own it.</span></div><div style={{ color: C.muted, fontSize: 32, lineHeight: 1.38, marginTop: 30 }}>Approve, block, accept risk, or request evidence—with rationale and follow-ups preserved in the release ledger.</div><div style={{ marginTop: 36, display: "inline-flex", borderRadius: 16, padding: "16px 21px", background: "rgba(255,191,91,0.14)", border: "1px solid rgba(255,191,91,0.44)", color: C.amber, fontWeight: 900, fontSize: 24 }}>ACCEPTED RISK · ACCOUNTABLE</div></div></div>
-      </div>
+    <div style={{ position: "absolute", inset: 0, opacity: policy, display: "flex", alignItems: "center", justifyContent: "center" }}><div style={{ width: 1480, display: "grid", gridTemplateColumns: "0.95fr 1.05fr", gap: 100, alignItems: "center" }}><div><Label color={purple}>Make the standard executable</Label><div style={{ fontSize: 86, lineHeight: 0.96, fontWeight: 950, letterSpacing: "-0.065em", marginTop: 22 }}>Enforce<br />the <span style={{ color: purple }}>proof.</span></div><div style={{ fontSize: 31, lineHeight: 1.3, color: "rgba(21,18,31,0.64)", marginTop: 28 }}>Policy gates move the same release evidence into local development and CI.</div></div><div style={{ borderRadius: 30, overflow: "hidden", background: ink, color: paper, padding: 44, boxShadow: "0 40px 90px rgba(44,22,75,0.25)", scale: inScale(frame, 1620), fontFamily: "Cascadia Code, Consolas, monospace" }}><div style={{ color: "rgba(247,246,251,0.48)", fontSize: 22 }}>.branchline/policy.yml</div><div style={{ marginTop: 26, fontSize: 28, lineHeight: 1.74 }}><div>requireCouncil: <span style={{ color: mint }}>true</span></div><div>requireHumanDecision: <span style={{ color: mint }}>true</span></div><div>minTestConfidence: <span style={{ color: "#ffc956" }}>75</span></div><div style={{ marginTop: 26, display: "inline-block", padding: "13px 18px", background: mint, color: ink, borderRadius: 12, fontWeight: 950 }}>✓ POLICY PASSED</div></div></div></div></div>
 
-      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", opacity: policy }}>
-        <div style={{ width: 1500, display: "grid", gridTemplateColumns: "0.86fr 1.14fr", gap: 92, alignItems: "center" }}><div><Eyebrow>04 / Make the standard executable</Eyebrow><div style={{ fontSize: 80, lineHeight: 1.02, fontWeight: 900, letterSpacing: "-0.055em", marginTop: 25 }}>Turn release quality into a <span style={{ color: C.mint }}>policy gate.</span></div><div style={{ color: C.muted, fontSize: 31, lineHeight: 1.38, marginTop: 30 }}>Require test confidence, compatibility safeguards, Council coverage, and a human decision—locally or in CI.</div></div><div style={{ borderRadius: 28, overflow: "hidden", border: `1px solid ${C.line}`, background: "#08182d", boxShadow: "0 30px 80px rgba(0,0,0,0.35)", scale: pop(frame, 4260) }}><div style={{ padding: "20px 28px", background: "#142943", fontFamily: "Cascadia Code, Consolas, monospace", fontSize: 22, color: C.muted }}>.branchline/policy.yml</div><div style={{ padding: 36, fontFamily: "Cascadia Code, Consolas, monospace", fontSize: 27, lineHeight: 1.72 }}><div style={{ color: C.blue }}>requireCouncil:<span style={{ color: C.mint }}> true</span></div><div style={{ color: C.blue }}>requireAllCouncilRoles:<span style={{ color: C.mint }}> true</span></div><div style={{ color: C.blue }}>requireHumanDecision:<span style={{ color: C.mint }}> true</span></div><div style={{ color: C.blue }}>minTestConfidence:<span style={{ color: C.amber }}> 75</span></div><div style={{ marginTop: 26, padding: "14px 18px", borderRadius: 12, color: C.ink, background: C.mint, display: "inline-block", fontWeight: 900 }}>✓ POLICY CHECK PASSED</div></div></div></div>
-      </div>
+    <div style={{ position: "absolute", inset: 0, opacity: harness, display: "flex", alignItems: "center", justifyContent: "center" }}><div style={{ width: 1460, textAlign: "center" }}><Label>One source of truth</Label><div style={{ fontSize: 98, fontWeight: 950, letterSpacing: "-0.07em", lineHeight: 0.94, marginTop: 22 }}>Every harness<br /><span style={{ color: purple }}>gets the proof.</span></div><div style={{ margin: "44px auto 0", padding: "25px 30px", width: 1120, borderRadius: 25, background: ink, color: paper, textAlign: "left", fontFamily: "Cascadia Code, Consolas, monospace", fontSize: 30, boxShadow: "0 35px 90px rgba(44,22,75,0.24)" }}><span style={{ color: mint }}>$</span> npx github:KrisnaSantosa15/branchline mcp<div style={{ color: "rgba(247,246,251,0.55)", fontSize: 22, marginTop: 16 }}>analyze_release · get_evidence_pack · compare_rollouts · check_policy</div></div><div style={{ display: "flex", justifyContent: "center", gap: 14, marginTop: 30 }}>{["CODEX", "CLAUDE", "CURSOR", "COPILOT", "OPENCODE", "GEMINI"].map((item, index) => <div key={item} style={{ opacity: enter(frame, 1940 + index * 18), padding: "12px 17px", borderRadius: 12, background: "rgba(21,18,31,0.09)", fontSize: 19, fontWeight: 900 }}>{item}</div>)}</div></div></div>
 
-      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", opacity: mcp }}>
-        <div style={{ width: 1500, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 70, alignItems: "center" }}><div style={{ borderRadius: 30, padding: 44, background: "#07111f", border: "1px solid rgba(105,230,197,0.34)", boxShadow: "0 34px 85px rgba(0,0,0,0.4)", fontFamily: "Cascadia Code, Consolas, monospace", scale: pop(frame, 4710) }}><div style={{ color: C.muted, fontSize: 22 }}>terminal · read-only MCP</div><div style={{ color: C.mint, fontSize: 29, marginTop: 28 }}>$ npx github:KrisnaSantosa15/branchline mcp</div><div style={{ color: C.paper, fontSize: 25, lineHeight: 1.8, marginTop: 28 }}>{["analyze_release", "get_evidence_pack", "compare_rollouts", "check_policy"].map((tool, index) => <div key={tool} style={{ opacity: interpolate(frame, [4800 + index * 24, 4830 + index * 24], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) }}>› {tool}</div>)}</div><div style={{ color: C.muted, fontSize: 21, marginTop: 28 }}>Git-only · deterministic · no deploys · no pushes</div></div><div><Eyebrow>05 / Bring the proof to every harness</Eyebrow><div style={{ fontSize: 78, lineHeight: 1.02, fontWeight: 900, letterSpacing: "-0.055em", marginTop: 25 }}>One source of truth.<br /><span style={{ color: C.mint }}>Every agent.</span></div><div style={{ marginTop: 38, display: "flex", flexWrap: "wrap", gap: 14 }}>{["CODEX", "CLAUDE CODE", "CURSOR", "COPILOT", "OPENCODE", "GEMINI"].map((name) => <div key={name} style={{ border: `1px solid ${C.line}`, borderRadius: 14, padding: "14px 18px", fontSize: 22, fontWeight: 900, color: C.paper }}>{name}</div>)}</div><div style={{ color: C.muted, fontSize: 30, lineHeight: 1.35, marginTop: 34 }}>GPT-5.6 reasons over bounded, redacted evidence. The human retains the release call.</div></div></div>
-      </div>
-
-      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", opacity: outro }}><div style={{ textAlign: "center", width: 1450 }}><Eyebrow>Branchline</Eyebrow><div style={{ fontSize: 112, lineHeight: 0.95, fontWeight: 900, letterSpacing: "-0.07em", marginTop: 34 }}>Map it.<br /><span style={{ color: C.mint }}>Rehearse it.</span><br />Then decide.</div><div style={{ color: C.muted, fontSize: 35, marginTop: 34 }}>Evidence-led release rehearsal for humans and coding agents.</div></div></div>
-      <CaptionBar />
-    </AbsoluteFill>
-  );
+    <div style={{ position: "absolute", inset: 0, opacity: finale, display: "flex", alignItems: "center", justifyContent: "center" }}><div style={{ textAlign: "center" }}><div style={{ width: 84, height: 84, borderRadius: 28, background: mint, margin: "0 auto", boxShadow: "0 22px 52px rgba(119,88,245,0.25)" }} /><div style={{ fontSize: 112, fontWeight: 950, letterSpacing: "-0.075em", lineHeight: 0.92, marginTop: 28 }}>Map it.<br /><span style={{ color: purple }}>Rehearse it.</span><br />Then decide.</div><div style={{ marginTop: 30, fontSize: 28, color: "rgba(21,18,31,0.58)", fontWeight: 700 }}>BRANCHLINE · EVIDENCE-LED RELEASE REHEARSAL</div></div></div>
+  </AbsoluteFill>;
 };

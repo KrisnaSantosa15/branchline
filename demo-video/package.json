@@ -6,7 +6,6 @@
   "license": "UNLICENSED",
   "private": true,
   "dependencies": {
-    "@remotion/captions": "4.0.493",
     "@remotion/cli": "4.0.493",
     "@remotion/tailwind-v4": "4.0.493",
     "react": "19.2.3",
@@ -27,7 +26,7 @@
     "build": "remotion bundle",
     "upgrade": "remotion upgrade",
     "lint": "eslint src && tsc",
-    "audio": "powershell -ExecutionPolicy Bypass -File scripts/generate-narration.ps1",
+    "audio": "powershell -ExecutionPolicy Bypass -File scripts/generate-narration.ps1 && powershell -ExecutionPolicy Bypass -File scripts/generate-bed.ps1",
     "render": "npm run audio && remotion render BranchlineDemo out/branchline-demo.mp4 --codec=h264 --crf=18"
   },
   "sideEffects": [
