@@ -1,0 +1,20 @@
+{
+  "name": "branchline",
+  "version": "0.2.0",
+  "description": "Evidence-led, read-only release rehearsal for Git changes.",
+  "author": {
+    "name": "Krisna Santosa"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Branchline",
+    "shortDescription": "Rehearse release risk from a real Git diff.",
+    "longDescription": "Turn committed Git evidence into an auditable rollout decision, deterministic mitigations, and an explicit human approval gate.",
+    "developerName": "Krisna Santosa",
+    "category": "Developer tools",
+    "capabilities": [
+      "skills"
+    ],
+    "defaultPrompt": "Use Branchline to analyze this release candidate. Separate observed evidence from assumptions, propose a rollout path, and keep the final decision with me."
+  }
+}
