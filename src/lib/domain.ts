@@ -147,3 +147,84 @@ export type Comparison = {
   alternate: Scenario;
   deltas: Array<{ label: string; primary: number | string; alternate: number | string; better: "primary" | "alternate" | "tie" }>;
 };
+
+export const councilRoles = ["contract-guardian", "test-observability", "rollout-commander", "security-config"] as const;
+export type CouncilRole = (typeof councilRoles)[number];
+
+export const councilVerdicts = ["approve", "caution", "block", "insufficient-evidence"] as const;
+export type CouncilVerdict = (typeof councilVerdicts)[number];
+
+export type CouncilRecommendation = ReleaseStrategy | "hold";
+
+export type CouncilEvidence = Evidence & {
+  findingId: string;
+  findingTitle: string;
+  severity: Finding["severity"];
+  confidence: Confidence;
+};
+
+export type CouncilEvidencePack = {
+  schemaVersion: 1;
+  id: string;
+  hash: string;
+  scope: {
+    repository: string;
+    baseCommit: string;
+    headCommit: string;
+    diffSummary: AnalysisResult["diffSummary"];
+  };
+  findings: Array<Pick<Finding, "id" | "kind" | "title" | "detail" | "severity" | "confidence" | "impactedFiles">>;
+  evidence: CouncilEvidence[];
+  scenario?: Pick<Scenario, "decisions" | "state">;
+  limitations: string[];
+};
+
+export type CouncilClaim = {
+  statement: string;
+  impact: Finding["severity"];
+  confidence: Confidence;
+  evidenceIds: string[];
+};
+
+export type CouncilReport = {
+  schemaVersion: 1;
+  evidencePackHash: string;
+  role: CouncilRole;
+  verdict: CouncilVerdict;
+  recommendation: CouncilRecommendation;
+  summary: string;
+  claims: CouncilClaim[];
+  unknowns: string[];
+  requiredVerifications: string[];
+  rollbackTriggers: string[];
+};
+
+export type CouncilDisagreement = {
+  kind: "verdict" | "recommendation";
+  roles: CouncilRole[];
+  detail: string;
+};
+
+export type CouncilSynthesis = {
+  evidencePackHash: string;
+  reports: CouncilReport[];
+  missingRoles: CouncilRole[];
+  overallVerdict: CouncilVerdict;
+  disagreements: CouncilDisagreement[];
+};
+
+export type CouncilReviewStatus = "open" | "request-evidence" | "accepted-risk" | "approved" | "blocked";
+
+export type CouncilReview = {
+  id: string;
+  workspaceId: string;
+  analysisId: string;
+  scenarioId?: string;
+  evidencePackHash: string;
+  status: CouncilReviewStatus;
+  decisionNote?: string;
+  requiredFollowUps: string[];
+  reports: CouncilReport[];
+  createdAt: string;
+  updatedAt: string;
+};

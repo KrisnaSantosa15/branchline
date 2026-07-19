@@ -15,6 +15,7 @@
     "scripts/branchline.ts",
     "src/lib/analysis.ts",
     "src/lib/artifacts.ts",
+    "src/lib/council.ts",
     "src/lib/domain.ts",
     "src/lib/repository.ts",
     "tsconfig.json",
