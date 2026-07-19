@@ -37,6 +37,7 @@ function usage() {
 Usage:
   branchline init <harness|all> [--cwd <project-path>] [--force]
   branchline analyze <local-git-path-or-public-https-url> [base-commit] [head-commit]
+  branchline council <local-git-path-or-public-https-url> [base-commit] [head-commit] [--format json|markdown]
   branchline doctor
 
 Harnesses: codex, claude-code, cursor, github-copilot, opencode, gemini, all
@@ -148,6 +149,14 @@ async function analyze(argumentsList) {
   process.exitCode = exitCode;
 }
 
+async function council(argumentsList) {
+  const tsxCli = require.resolve("tsx/cli");
+  const councilScript = join(packageRoot, "scripts", "council.ts");
+  const tsconfig = join(packageRoot, "tsconfig.json");
+  const exitCode = await run(process.execPath, [tsxCli, "--tsconfig", tsconfig, councilScript, ...argumentsList]);
+  process.exitCode = exitCode;
+}
+
 async function doctor() {
   const nodeMajor = Number(process.versions.node.split(".")[0]);
   console.log(`Node.js ${process.versions.node} ${nodeMajor >= 20 ? "✓" : "✗ requires Node 20+"}`);
@@ -175,6 +184,10 @@ async function main() {
   }
   if (command === "analyze") {
     await analyze(argumentsList);
+    return;
+  }
+  if (command === "council") {
+    await council(argumentsList);
     return;
   }
   if (command === "doctor") {

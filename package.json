@@ -13,6 +13,7 @@
     "integrations",
     "plugins",
     "scripts/branchline.ts",
+    "scripts/council.ts",
     "src/lib/analysis.ts",
     "src/lib/artifacts.ts",
     "src/lib/council.ts",
