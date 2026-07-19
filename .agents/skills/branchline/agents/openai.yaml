@@ -1,0 +1,4 @@
+interface:
+  display_name: "Branchline"
+  short_description: "Rehearse release changes with evidence"
+  default_prompt: "Use $branchline to rehearse the release risk in this repository."

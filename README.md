@@ -6,8 +6,6 @@ Branchline is an evidence-led release-impact rehearsal workspace for local Git c
 
 It is deliberately not an outage oracle. Branchline labels its outputs as **scenario-based rehearsal results**, links them to repository evidence, and keeps a human in charge of every release decision.
 
-![Branchline rehearsal workspace](output/playwright/branchline-verified.png)
-
 ## Why it matters
 
 Most code-review tools stop at “this diff looks risky.” Branchline closes the loop:
@@ -91,6 +89,17 @@ BRANCHLINE_REPO_ROOT=D:\\Projects\\exploration
 | `npm run typecheck` | Run TypeScript validation. |
 | `npm test` | Run fixture-backed analysis, simulation, and artifact tests. |
 | `npm run fixture:reset` | Recreate the two-commit local Git fixture. |
+| `npm run branchline -- <path>` | Print a read-only evidence and mitigation brief for a Codex agent. |
+
+## Codex skill
+
+Branchline includes a repo-scoped `$branchline` skill at [`.agents/skills/branchline/SKILL.md`](.agents/skills/branchline/SKILL.md). Open this repository as the Codex workspace (or restart Codex after cloning) and use it to run a read-only release rehearsal with the agent already in your Codex session:
+
+```powershell
+npm run branchline -- "D:\projects\service-api"
+```
+
+This route needs no separate model key: Codex reasons over the locally generated, redacted evidence. A standalone browser app cannot access or forward the user's Codex/ChatGPT credentials, so its optional advisor is intentionally configured separately.
 
 ## Privacy and safety
 

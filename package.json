@@ -12,7 +12,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "db:push": "drizzle-kit push",
-    "fixture:reset": "tsx scripts/reset-fixture.ts"
+    "fixture:reset": "tsx scripts/reset-fixture.ts",
+    "branchline": "tsx scripts/branchline.ts"
   },
   "dependencies": {
     "@types/better-sqlite3": "latest",
