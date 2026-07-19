@@ -2,7 +2,7 @@ import Database from "better-sqlite3";
 import { mkdirSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { dirname, join } from "node:path";
-import type { AnalysisResult, Mitigation, MitigationStatus, Scenario, Workspace } from "@/lib/domain";
+import type { AnalysisResult, CouncilReview, Mitigation, MitigationStatus, Scenario, Workspace } from "@/lib/domain";
 
 type WorkspaceRow = { id: string; name: string; repository_path: string; repository_source_json?: string | null; commits_json: string; created_at: string; updated_at: string };
 
@@ -43,6 +43,15 @@ function database() {
       workspace_id TEXT NOT NULL,
       analysis_id TEXT NOT NULL,
       mitigation_json TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS council_reviews (
+      id TEXT PRIMARY KEY,
+      workspace_id TEXT NOT NULL,
+      analysis_id TEXT NOT NULL,
+      scenario_id TEXT,
+      review_json TEXT NOT NULL,
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
@@ -147,7 +156,28 @@ export function updateMitigation(id: string, status: MitigationStatus, editedCon
   return saveMitigation(updated);
 }
 
+export function saveCouncilReview(review: CouncilReview): CouncilReview {
+  database()
+    .prepare("INSERT OR REPLACE INTO council_reviews (id, workspace_id, analysis_id, scenario_id, review_json, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)")
+    .run(review.id, review.workspaceId, review.analysisId, review.scenarioId ?? null, JSON.stringify(review), review.createdAt, review.updatedAt);
+  return review;
+}
+
+export function getCouncilReview(id: string): CouncilReview | undefined {
+  const row = database().prepare("SELECT review_json FROM council_reviews WHERE id = ?").get(id) as { review_json: string } | undefined;
+  return row ? (JSON.parse(row.review_json) as CouncilReview) : undefined;
+}
+
+export function getLatestCouncilReview(workspaceId: string, analysisId?: string, scenarioId?: string): CouncilReview | undefined {
+  const row = scenarioId
+    ? database().prepare("SELECT review_json FROM council_reviews WHERE workspace_id = ? AND analysis_id = ? AND scenario_id = ? ORDER BY updated_at DESC LIMIT 1").get(workspaceId, analysisId, scenarioId)
+    : analysisId
+      ? database().prepare("SELECT review_json FROM council_reviews WHERE workspace_id = ? AND analysis_id = ? ORDER BY updated_at DESC LIMIT 1").get(workspaceId, analysisId)
+      : database().prepare("SELECT review_json FROM council_reviews WHERE workspace_id = ? ORDER BY updated_at DESC LIMIT 1").get(workspaceId);
+  return row ? (JSON.parse((row as { review_json: string }).review_json) as CouncilReview) : undefined;
+}
+
 export function resetDatabaseForTests() {
   if (!process.env.VITEST) return;
-  database().exec("DELETE FROM mitigations; DELETE FROM scenarios; DELETE FROM analyses; DELETE FROM workspaces;");
+  database().exec("DELETE FROM council_reviews; DELETE FROM mitigations; DELETE FROM scenarios; DELETE FROM analyses; DELETE FROM workspaces;");
 }

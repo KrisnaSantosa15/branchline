@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getLatestAnalysis, getWorkspace, listMitigations, listScenarios } from "@/lib/persistence";
+import { getLatestAnalysis, getLatestCouncilReview, getWorkspace, listMitigations, listScenarios } from "@/lib/persistence";
 
 export async function GET(_: Request, context: { params: Promise<{ id: string }> }) {
   const { id } = await context.params;
@@ -11,5 +11,6 @@ export async function GET(_: Request, context: { params: Promise<{ id: string }>
     analysis,
     scenarios: listScenarios(id),
     mitigations: analysis ? listMitigations(analysis.id) : [],
+    councilReview: analysis ? getLatestCouncilReview(id, analysis.id) : undefined,
   });
 }

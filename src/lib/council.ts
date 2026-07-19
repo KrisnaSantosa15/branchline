@@ -1,9 +1,10 @@
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import type {
   AnalysisResult,
   CouncilDisagreement,
   CouncilEvidencePack,
   CouncilRecommendation,
+  CouncilReview,
   CouncilReport,
   CouncilRole,
   CouncilSynthesis,
@@ -133,4 +134,21 @@ export function synthesizeCouncil(evidencePack: CouncilEvidencePack, reports: Co
         ? "insufficient-evidence"
         : "approve";
   return { evidencePackHash: evidencePack.hash, reports, missingRoles: councilRoles.filter((role) => !roles.has(role)), overallVerdict, disagreements };
+}
+
+export function startCouncilReview(input: { workspaceId: string; analysisId: string; evidencePack: CouncilEvidencePack; scenarioId?: string }): CouncilReview {
+  const timestamp = new Date().toISOString();
+  return {
+    id: randomUUID(),
+    workspaceId: input.workspaceId,
+    analysisId: input.analysisId,
+    ...(input.scenarioId ? { scenarioId: input.scenarioId } : {}),
+    evidencePackHash: input.evidencePack.hash,
+    evidencePack: input.evidencePack,
+    status: "open",
+    requiredFollowUps: [],
+    reports: [],
+    createdAt: timestamp,
+    updatedAt: timestamp,
+  };
 }

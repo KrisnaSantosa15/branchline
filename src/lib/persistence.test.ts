@@ -7,8 +7,9 @@ import type { AnalysisResult } from "@/lib/domain";
 process.env.VITEST = "true";
 process.env.BRANCHLINE_DB_PATH = join(tmpdir(), `branchline-test-${randomUUID()}.db`);
 
-const { createWorkspace, getLatestAnalysis, getWorkspace, listMitigations, listScenarios, listWorkspaces, resetDatabaseForTests, saveAnalysis, saveMitigation, saveScenario, updateMitigation } = await import("@/lib/persistence");
+const { createWorkspace, getCouncilReview, getLatestAnalysis, getLatestCouncilReview, getWorkspace, listMitigations, listScenarios, listWorkspaces, resetDatabaseForTests, saveAnalysis, saveCouncilReview, saveMitigation, saveScenario, updateMitigation } = await import("@/lib/persistence");
 const { deterministicMitigations } = await import("@/lib/artifacts");
+const { createCouncilEvidencePack, startCouncilReview } = await import("@/lib/council");
 const { startScenario } = await import("@/lib/simulation");
 
 const analysis = (workspaceId: string): AnalysisResult => ({
@@ -27,6 +28,7 @@ describe("SQLite persistence", () => {
     const mitigation = deterministicMitigations(workspace.id, inspected)[0];
     saveMitigation(mitigation);
     const accepted = updateMitigation(mitigation.id, "accepted");
+    const councilReview = saveCouncilReview(startCouncilReview({ workspaceId: workspace.id, analysisId: inspected.id, scenarioId: scenario.id, evidencePack: createCouncilEvidencePack({ workspace, analysis: inspected, scenario }) }));
 
     expect(getWorkspace(workspace.id)?.name).toBe("Persistence test");
     expect(listWorkspaces().map((item) => item.id)).toContain(workspace.id);
@@ -34,5 +36,7 @@ describe("SQLite persistence", () => {
     expect(listScenarios(workspace.id)[0].id).toBe(scenario.id);
     expect(listMitigations(inspected.id)[0].status).toBe("accepted");
     expect(accepted?.status).toBe("accepted");
+    expect(getCouncilReview(councilReview.id)?.evidencePackHash).toBe(councilReview.evidencePackHash);
+    expect(getLatestCouncilReview(workspace.id, inspected.id, scenario.id)?.id).toBe(councilReview.id);
   });
 });

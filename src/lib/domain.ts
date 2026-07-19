@@ -221,6 +221,7 @@ export type CouncilReview = {
   analysisId: string;
   scenarioId?: string;
   evidencePackHash: string;
+  evidencePack: CouncilEvidencePack;
   status: CouncilReviewStatus;
   decisionNote?: string;
   requiredFollowUps: string[];

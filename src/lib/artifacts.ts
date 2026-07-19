@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { AnalysisResult, Mitigation, Scenario, Workspace } from "./domain";
+import type { AnalysisResult, CouncilReview, Mitigation, Scenario, Workspace } from "./domain";
 
 function now() {
   return new Date().toISOString();
@@ -73,7 +73,7 @@ describe("release contract: ${property}", () => {
   ];
 }
 
-export function exportReleaseBrief(workspace: Workspace, analysis: AnalysisResult, scenario: Scenario, mitigations: Mitigation[]) {
+export function exportReleaseBrief(workspace: Workspace, analysis: AnalysisResult, scenario: Scenario, mitigations: Mitigation[], councilReview?: CouncilReview) {
   const accepted = mitigations.filter((mitigation) => mitigation.status === "accepted" || mitigation.status === "edited");
   const evidence = analysis.findings.flatMap((finding) => finding.evidence);
   const markdown = `# Branchline release brief — ${workspace.name}
@@ -113,6 +113,15 @@ ${scenario.events.map((item) => `- **${item.actor}** — ${item.title}: ${item.d
 
 ${accepted.length ? accepted.map((item) => `- **${item.title}** (${item.owner})\n  - Verify: ${item.verification}\n  - Fallback: ${item.fallback}`).join("\n") : "No mitigations accepted yet."}
 
+## Release Council
+
+${councilReview ? `- Evidence packet: \`${councilReview.evidencePackHash}\`
+- Human review status: **${councilReview.status}**
+- Decision note: ${councilReview.decisionNote ?? "No human decision recorded yet."}
+- Required follow-ups: ${councilReview.requiredFollowUps.length ? councilReview.requiredFollowUps.join("; ") : "None recorded."}
+- Specialist reports: ${councilReview.reports.length}
+${councilReview.reports.map((report) => `  - **${report.role}** — ${report.verdict}; recommends \`${report.recommendation}\``).join("\n")}` : "No Council review was created for this release boundary."}
+
 ## Assumptions and privacy
 
 - Branchline analyzed a local Git diff and stored the resulting audit trail locally.
@@ -123,5 +132,5 @@ ${accepted.length ? accepted.map((item) => `- **${item.title}** (${item.owner})\
 
 ${evidence.map((item) => `- ${item.id}: \`${item.path}\` — ${item.detail}`).join("\n")}
 `;
-  return { markdown, json: { workspace, analysis, scenario, mitigations } };
+  return { markdown, json: { workspace, analysis, scenario, mitigations, councilReview } };
 }
