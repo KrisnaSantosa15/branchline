@@ -9,6 +9,7 @@
   },
   "files": [
     "bin",
+    ".claude-plugin/marketplace.json",
     "integrations",
     "plugins",
     "scripts/branchline.ts",
@@ -37,6 +38,7 @@
     "branchline": "tsx scripts/branchline.ts",
     "test:distribution": "node scripts/test-distribution.mjs",
     "test:codex-plugin": "node scripts/test-codex-plugin.mjs",
+    "test:claude-plugin": "node scripts/test-claude-plugin.mjs",
     "package:check": "npm pack --dry-run"
   },
   "dependencies": {

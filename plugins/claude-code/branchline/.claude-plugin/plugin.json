@@ -1,0 +1,18 @@
+{
+  "name": "branchline",
+  "version": "0.2.0",
+  "description": "Evidence-led, local release rehearsal for Git changes.",
+  "author": {
+    "name": "Krisna Santosa"
+  },
+  "homepage": "https://github.com/KrisnaSantosa15/branchline",
+  "repository": "https://github.com/KrisnaSantosa15/branchline",
+  "license": "MIT",
+  "keywords": [
+    "release",
+    "git",
+    "risk",
+    "developer-tools"
+  ],
+  "skills": "./skills"
+}

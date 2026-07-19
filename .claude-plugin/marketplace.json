@@ -1,0 +1,33 @@
+{
+  "name": "branchline-tools",
+  "owner": {
+    "name": "Krisna Santosa"
+  },
+  "description": "Evidence-led, local release rehearsal tools for coding agents.",
+  "plugins": [
+    {
+      "name": "branchline",
+      "source": "./plugins/claude-code/branchline",
+      "description": "Turn a Git release candidate into an evidence-led rollout decision and human approval gate.",
+      "version": "0.2.0",
+      "author": {
+        "name": "Krisna Santosa"
+      },
+      "homepage": "https://github.com/KrisnaSantosa15/branchline",
+      "repository": "https://github.com/KrisnaSantosa15/branchline",
+      "license": "MIT",
+      "keywords": [
+        "release",
+        "git",
+        "risk",
+        "developer-tools"
+      ],
+      "category": "Developer tools",
+      "tags": [
+        "release",
+        "safety",
+        "git"
+      ]
+    }
+  ]
+}
