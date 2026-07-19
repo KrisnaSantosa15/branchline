@@ -21,7 +21,7 @@ const marketplaceEntry = marketplace.plugins.find((entry) => entry.name === "bra
 assert.ok(marketplaceEntry, "Marketplace must expose the Branchline plugin.");
 assert.deepEqual(marketplaceEntry.source, { source: "local", path: "./plugins/branchline" });
 
-for (const name of ["branchline", "branchline-cli"]) {
+for (const name of ["branchline", "branchline-cli", "branchline-council", "branchline-review"]) {
   const skillPath = join(pluginRoot, "skills", name, "SKILL.md");
   const skill = await readFile(skillPath, "utf8");
   await stat(skillPath);

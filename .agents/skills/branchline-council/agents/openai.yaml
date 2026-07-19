@@ -1,0 +1,4 @@
+interface:
+  display_name: "Branchline Council"
+  short_description: "Run an evidence-bound release council"
+  default_prompt: "Run a Branchline Release Council for this Git change and return structured specialist findings."

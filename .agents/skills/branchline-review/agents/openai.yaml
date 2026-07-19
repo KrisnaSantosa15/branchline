@@ -1,0 +1,4 @@
+interface:
+  display_name: "Branchline Review"
+  short_description: "Resolve an evidence-bound release review"
+  default_prompt: "Review Branchline Council findings and prepare a human decision record."

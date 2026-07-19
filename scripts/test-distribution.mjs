@@ -9,7 +9,7 @@ const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const binary = join(projectRoot, "bin", "branchline.mjs");
 const temporaryProject = await mkdtemp(join(tmpdir(), "branchline-distribution-"));
 
-for (const canonicalSkill of ["branchline", "branchline-cli"]) {
+for (const canonicalSkill of ["branchline", "branchline-cli", "branchline-council", "branchline-review"]) {
   const contents = await readFile(join(projectRoot, ".agents", "skills", canonicalSkill, "SKILL.md"), "utf8");
   assert.match(contents, /^---\r?\nname: [\w-]+\r?\ndescription: .+\r?\n---\r?\n/s);
   assert.doesNotMatch(contents, /\[TODO:/);
@@ -30,7 +30,7 @@ function run(argumentsList) {
 try {
   const install = await run(["init", "all", "--cwd", temporaryProject]);
   assert.equal(install.code, 0, install.output);
-  assert.match(install.output, /12 installed/);
+  assert.match(install.output, /24 installed/);
 
   const expectedRoots = [
     ".agents/skills",
@@ -43,6 +43,8 @@ try {
   for (const root of expectedRoots) {
     await stat(join(temporaryProject, root, "branchline", "SKILL.md"));
     await stat(join(temporaryProject, root, "branchline-cli", "SKILL.md"));
+    await stat(join(temporaryProject, root, "branchline-council", "SKILL.md"));
+    await stat(join(temporaryProject, root, "branchline-review", "SKILL.md"));
   }
 
   const skill = await readFile(join(temporaryProject, ".agents/skills/branchline/SKILL.md"), "utf8");
@@ -51,7 +53,7 @@ try {
 
   const secondInstall = await run(["init", "codex", "--cwd", temporaryProject]);
   assert.equal(secondInstall.code, 0, secondInstall.output);
-  assert.match(secondInstall.output, /2 skipped/);
+  assert.match(secondInstall.output, /4 skipped/);
 
   console.log("Distribution installer checks passed.");
 } finally {

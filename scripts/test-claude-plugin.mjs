@@ -22,7 +22,7 @@ assert.equal(plugin.version, packageManifest.version);
 assert.equal(plugin.skills, "./skills");
 assert.equal(plugin.license, "MIT");
 
-for (const name of ["branchline", "branchline-cli"]) {
+for (const name of ["branchline", "branchline-cli", "branchline-council", "branchline-review"]) {
   const skillPath = join(pluginRoot, "skills", name, "SKILL.md");
   const skill = await readFile(skillPath, "utf8");
   await stat(skillPath);

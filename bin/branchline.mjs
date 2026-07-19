@@ -111,7 +111,7 @@ async function installSkills(harnessInput, options) {
   const results = [];
   for (const harness of harnesses) {
     const root = join(options.cwd, HARNESS_TARGETS[harness]);
-    for (const skillName of ["branchline", "branchline-cli"]) {
+    for (const skillName of ["branchline", "branchline-cli", "branchline-council", "branchline-review"]) {
       results.push({
         harness,
         skillName,
