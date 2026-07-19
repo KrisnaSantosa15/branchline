@@ -1,14 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, ArrowRight, Check, ChevronRight, CircleDotDashed, Copy, FileDown, GitBranch, GitCommitHorizontal, Network, Play, RotateCcw, ShieldCheck, Sparkles, TimerReset, TriangleAlert, X } from "lucide-react";
+import { AlertTriangle, ArrowRight, Check, ChevronRight, CircleDotDashed, Copy, FileDown, FileJson, GitBranch, GitCommitHorizontal, Network, Play, Scale, Send, ShieldAlert, ShieldCheck, Sparkles, TimerReset, TriangleAlert, X } from "lucide-react";
 import clsx from "clsx";
-import type { AnalysisResult, Comparison, Mitigation, ReleaseStrategy, Scenario, Workspace } from "@/lib/domain";
+import { councilRoles } from "@/lib/domain";
+import type { AnalysisResult, Comparison, CouncilReview, CouncilReviewStatus, CouncilVerdict, Mitigation, ReleaseStrategy, Scenario, Workspace } from "@/lib/domain";
 
 type WorkspaceResponse = { workspace: Workspace };
 type AnalyzeResponse = { analysis: AnalysisResult; mitigations: Mitigation[] };
-type WorkspaceStateResponse = { workspace: Workspace; analysis?: AnalysisResult; scenarios: Scenario[]; mitigations: Mitigation[] };
-type WorkflowPanel = "connect" | "impact" | "rehearse" | "decide";
+type WorkspaceStateResponse = { workspace: Workspace; analysis?: AnalysisResult; scenarios: Scenario[]; mitigations: Mitigation[]; councilReview?: CouncilReview };
+type WorkflowPanel = "connect" | "impact" | "rehearse" | "council" | "decide";
 
 async function api<T>(url: string, options?: RequestInit): Promise<T> {
   const response = await fetch(url, { ...options, headers: { "Content-Type": "application/json", ...(options?.headers ?? {}) } });
@@ -58,6 +59,11 @@ export function BranchlineConsole() {
   const [scenario, setScenario] = useState<Scenario>();
   const [scenarios, setScenarios] = useState<Scenario[]>([]);
   const [mitigations, setMitigations] = useState<Mitigation[]>([]);
+  const [councilReview, setCouncilReview] = useState<CouncilReview>();
+  const [councilReportJson, setCouncilReportJson] = useState("");
+  const [councilDecision, setCouncilDecision] = useState<CouncilReviewStatus>("approved");
+  const [councilDecisionNote, setCouncilDecisionNote] = useState("");
+  const [councilFollowUps, setCouncilFollowUps] = useState("");
   const [comparison, setComparison] = useState<Comparison>();
   const [selectedEvidence, setSelectedEvidence] = useState<string[]>([]);
   const [advisorAvailable, setAdvisorAvailable] = useState<boolean>();
@@ -65,15 +71,29 @@ export function BranchlineConsole() {
   const [busy, setBusy] = useState<string>();
   const [notice, setNotice] = useState<{ text: string; tone: "error" | "success" | "info" }>();
 
-  const contractFinding = analysis?.findings.find((finding) => finding.kind === "api-contract-tightened");
   const riskFindingCount = analysis?.findings.filter((finding) => finding.severity === "critical" || finding.severity === "high").length ?? 0;
   const alternateScenarios = scenarios.filter((item) => item.id !== scenario?.id);
   const canUseModel = selectedEvidence.length > 0;
+  const councilSynthesis = useMemo(() => {
+    const reports = councilReview?.reports ?? [];
+    const verdict: CouncilVerdict = reports.some((item) => item.verdict === "block") ? "block" : reports.some((item) => item.verdict === "caution") ? "caution" : reports.some((item) => item.verdict === "insufficient-evidence") ? "insufficient-evidence" : "approve";
+    const recommendations = new Set(reports.map((item) => item.recommendation));
+    const verdicts = new Set(reports.map((item) => item.verdict));
+    return {
+      verdict,
+      missingRoles: councilRoles.filter((role) => !reports.some((item) => item.role === role)),
+      disagreements: [
+        ...(verdicts.size > 1 ? ["Specialists returned different verdicts."] : []),
+        ...(recommendations.size > 1 ? ["Specialists recommend different release paths."] : []),
+      ],
+    };
+  }, [councilReview]);
   const workflow = [
     { id: "connect" as const, number: "01", label: "Connect", detail: workspace ? "source ready" : "choose source", disabled: false },
     { id: "impact" as const, number: "02", label: "Impact", detail: analysis ? `${analysis.findings.length} signals` : "map the diff", disabled: !analysis },
     { id: "rehearse" as const, number: "03", label: "Rehearse", detail: scenario ? scenario.state.releaseStatus : "test a path", disabled: !analysis },
-    { id: "decide" as const, number: "04", label: "Decide", detail: `${mitigations.filter((item) => item.status === "accepted").length} accepted`, disabled: !analysis },
+    { id: "council" as const, number: "04", label: "Council", detail: councilReview ? `${councilReview.reports.length}/4 reports` : "specialist review", disabled: !analysis },
+    { id: "decide" as const, number: "05", label: "Decide", detail: `${mitigations.filter((item) => item.status === "accepted").length} accepted`, disabled: !analysis },
   ];
 
   useEffect(() => {
@@ -111,6 +131,7 @@ export function BranchlineConsole() {
       setScenario(undefined);
       setScenarios([]);
       setMitigations([]);
+      setCouncilReview(undefined);
       setComparison(undefined);
       setActivePanel("connect");
       setRecentWorkspaces((items) => [result.workspace, ...items.filter((item) => item.id !== result.workspace.id)]);
@@ -132,6 +153,16 @@ export function BranchlineConsole() {
       setName(result.workspace.name);
       setAnalysis(result.analysis);
       setMitigations(result.mitigations);
+      setCouncilReview(result.councilReview);
+      if (result.councilReview) {
+        setCouncilDecision(result.councilReview.status === "open" ? "approved" : result.councilReview.status);
+        setCouncilDecisionNote(result.councilReview.decisionNote ?? "");
+        setCouncilFollowUps(result.councilReview.requiredFollowUps.join("\n"));
+      } else {
+        setCouncilDecision("approved");
+        setCouncilDecisionNote("");
+        setCouncilFollowUps("");
+      }
       setScenarios(result.scenarios);
       setScenario(result.scenarios.at(-1));
       setBaseCommit(result.analysis?.baseCommit ?? result.workspace.commits[1]?.hash ?? result.workspace.commits[0]?.hash ?? "");
@@ -155,6 +186,7 @@ export function BranchlineConsole() {
       const result = await api<AnalyzeResponse>(`/api/workspaces/${workspace.id}/analyze`, { method: "POST", body: JSON.stringify({ baseCommit, headCommit }) });
       setAnalysis(result.analysis);
       setMitigations(result.mitigations);
+      setCouncilReview(undefined);
       setScenario(undefined);
       setScenarios([]);
       setSelectedEvidence(result.analysis.findings.flatMap((finding) => finding.evidence.map((item) => item.id)).slice(0, 3));
@@ -249,6 +281,65 @@ export function BranchlineConsole() {
       setNotice({ text: "An advisor proposal was added as a reviewable card. It has not changed the scenario metrics.", tone: "success" });
     } catch (error) {
       setNotice({ text: error instanceof Error ? error.message : "Advisor assistance is unavailable. Configure a compatible endpoint to enable it.", tone: "error" });
+    } finally {
+      setBusy(undefined);
+    }
+  };
+
+  const createCouncil = async () => {
+    if (!workspace || !analysis) return;
+    setBusy("council-create");
+    try {
+      const result = await api<{ review: CouncilReview }>("/api/council/reviews", { method: "POST", body: JSON.stringify({ workspaceId: workspace.id, analysisId: analysis.id, scenarioId: scenario?.id }) });
+      setCouncilReview(result.review);
+      setCouncilReportJson("");
+      setCouncilDecision("approved");
+      setCouncilDecisionNote("");
+      setCouncilFollowUps("");
+      setNotice({ text: "Council packet created locally. Share only this redacted packet with your specialist agents.", tone: "success" });
+    } catch (error) {
+      setNotice({ text: error instanceof Error ? error.message : "Council packet could not be created.", tone: "error" });
+    } finally {
+      setBusy(undefined);
+    }
+  };
+
+  const copyCouncilPacket = async () => {
+    if (!councilReview) return;
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(councilReview.evidencePack, null, 2));
+      setNotice({ text: "Council packet copied. It contains redacted repository evidence and a stable hash.", tone: "success" });
+    } catch {
+      setNotice({ text: "Could not access the clipboard. Download or copy the packet from your agent workflow instead.", tone: "error" });
+    }
+  };
+
+  const importCouncilReport = async () => {
+    if (!councilReview || !councilReportJson.trim()) return;
+    setBusy("council-report");
+    try {
+      const report = JSON.parse(councilReportJson) as unknown;
+      const result = await api<{ review: CouncilReview }>(`/api/council/reviews/${councilReview.id}/reports`, { method: "POST", body: JSON.stringify({ report }) });
+      setCouncilReview(result.review);
+      setCouncilReportJson("");
+      setNotice({ text: "Specialist report validated against the exact Council packet and saved to the ledger.", tone: "success" });
+    } catch (error) {
+      setNotice({ text: error instanceof Error ? error.message : "That specialist report is not valid JSON.", tone: "error" });
+    } finally {
+      setBusy(undefined);
+    }
+  };
+
+  const saveCouncilDecision = async () => {
+    if (!councilReview) return;
+    setBusy("council-decision");
+    try {
+      const requiredFollowUps = councilFollowUps.split("\n").map((item) => item.trim()).filter(Boolean);
+      const result = await api<{ review: CouncilReview }>(`/api/council/reviews/${councilReview.id}/decision`, { method: "POST", body: JSON.stringify({ status: councilDecision, decisionNote: councilDecisionNote, requiredFollowUps }) });
+      setCouncilReview(result.review);
+      setNotice({ text: "Human Council decision saved to the release ledger and included in future exports.", tone: "success" });
+    } catch (error) {
+      setNotice({ text: error instanceof Error ? error.message : "A decision needs a short rationale and valid follow-ups.", tone: "error" });
     } finally {
       setBusy(undefined);
     }
@@ -485,6 +576,65 @@ export function BranchlineConsole() {
               </>
             ) : <div className="empty-stage"><Play size={28} /><p>The evidence map is ready. Arm the rehearsal to make a release decision and observe the causal trace.</p></div>}
           </section>
+      )}
+
+      {analysis && activePanel === "council" && (
+        <section className="module council" id="panel-council" role="tabpanel" aria-label="Release Council review">
+          <div className="module__heading module__heading--split">
+            <div><span className="module__index">04 / RELEASE COUNCIL</span><h2>Challenge the path before you own it.</h2></div>
+            <button className="button button--signal" type="button" onClick={createCouncil} disabled={busy === "council-create"}><Scale size={17} /> {busy === "council-create" ? "Sealing packet…" : councilReview ? "New packet" : "Create Council packet"}</button>
+          </div>
+          <p className="module__subcopy">Branchline seals selected Git evidence into a local packet. Specialist agents return JSON against that hash; Branchline validates it, shows disagreement, and records the human decision. No model runs inside this panel.</p>
+
+          {!councilReview ? (
+            <div className="empty-stage council__empty"><Scale size={30} /><p>Create the packet, run <code>$branchline-council</code> in your installed harness, then paste its specialist reports here.</p></div>
+          ) : (
+            <div className="council-board">
+              <div className="council-seal">
+                <div><span>IMMUTABLE EVIDENCE PACK</span><strong>{councilReview.evidencePackHash.slice(0, 16)}…</strong><small>{councilReview.evidencePack.evidence.length} redacted evidence records · {councilReview.evidencePack.findings.length} findings</small></div>
+                <button className="button button--outline" type="button" onClick={copyCouncilPacket}><Copy size={16} /> Copy packet</button>
+              </div>
+
+              <div className="council-role-grid" aria-label="Council specialist coverage">
+                {councilRoles.map((role) => {
+                  const report = councilReview.reports.find((item) => item.role === role);
+                  return <article className={clsx("council-role", report && `council-role--${report.verdict}`)} key={role}>
+                    <span>{role.replaceAll("-", " ")}</span>
+                    <b>{report ? report.verdict : "awaiting report"}</b>
+                    <small>{report ? report.recommendation.replaceAll("-", " ") : "Run the specialist brief"}</small>
+                  </article>;
+                })}
+              </div>
+
+              <div className={clsx("council-synthesis", councilSynthesis.verdict === "block" && "council-synthesis--block", councilSynthesis.verdict === "caution" && "council-synthesis--caution")}>
+                <ShieldAlert size={20} />
+                <div><span>COUNCIL STATE</span><strong>{councilReview.reports.length ? councilSynthesis.verdict.replaceAll("-", " ") : "awaiting evidence"}</strong><p>{councilSynthesis.disagreements.length ? councilSynthesis.disagreements.join(" ") : councilSynthesis.missingRoles.length ? `Awaiting: ${councilSynthesis.missingRoles.map((role) => role.replaceAll("-", " ")).join(", ")}.` : "All specialist reports agree on the current evidence boundary. Human review is still required."}</p></div>
+              </div>
+
+              <div className="council-workbench">
+                <div className="council-import">
+                  <div className="council-panel__heading"><FileJson size={17} /><span>Import validated specialist JSON</span></div>
+                  <textarea value={councilReportJson} onChange={(event) => setCouncilReportJson(event.target.value)} placeholder={'Paste one report with schemaVersion, evidencePackHash, role, verdict, claims, unknowns, verifications, and rollback triggers.'} spellCheck={false} aria-label="Specialist Council report JSON" />
+                  <button className="button button--primary" type="button" onClick={importCouncilReport} disabled={busy === "council-report" || !councilReportJson.trim()}><Send size={16} /> {busy === "council-report" ? "Validating…" : "Validate and import"}</button>
+                </div>
+                <div className="council-reports">
+                  <div className="council-panel__heading"><Scale size={17} /><span>Evidence-bound reports</span></div>
+                  {councilReview.reports.length ? councilReview.reports.map((report) => <article className={clsx("council-report", `council-report--${report.verdict}`)} key={report.role}><div><span>{report.role.replaceAll("-", " ")}</span><b>{report.verdict}</b><small>recommends {report.recommendation.replaceAll("-", " ")}</small></div><p>{report.summary}</p><ul>{report.claims.map((claim) => <li key={`${report.role}-${claim.statement}`}><code>{claim.evidenceIds.join(", ")}</code> {claim.statement}</li>)}</ul></article>) : <p className="council-reports__empty">No report imported. The four role slots above prevent “one agent said so” from becoming a release decision.</p>}
+                </div>
+              </div>
+
+              <div className="council-decision">
+                <div><span className="module__index">HUMAN DECISION</span><h3>Record the accountable call.</h3><p>Acceptance preserves disagreement and follow-ups; it never erases a blocking claim.</p></div>
+                <div className="council-decision__form">
+                  <label><span>Status</span><select value={councilDecision} onChange={(event) => setCouncilDecision(event.target.value as CouncilReviewStatus)}><option value="approved">Approved</option><option value="blocked">Blocked</option><option value="accepted-risk">Accepted risk</option><option value="request-evidence">Request evidence</option></select></label>
+                  <label><span>Human rationale</span><textarea value={councilDecisionNote} onChange={(event) => setCouncilDecisionNote(event.target.value)} placeholder="Why this release is approved, blocked, or accepted with risk…" /></label>
+                  <label><span>Follow-ups — one per line</span><textarea value={councilFollowUps} onChange={(event) => setCouncilFollowUps(event.target.value)} placeholder="owner: verification command or rollback condition" /></label>
+                  <button className="button button--signal" type="button" onClick={saveCouncilDecision} disabled={busy === "council-decision" || !councilDecisionNote.trim()}><Check size={16} /> {busy === "council-decision" ? "Saving…" : "Save human decision"}</button>
+                </div>
+              </div>
+            </div>
+          )}
+        </section>
       )}
 
       {analysis && activePanel === "decide" && (
