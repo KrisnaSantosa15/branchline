@@ -59,7 +59,7 @@ export function BranchlineConsole() {
   const [mitigations, setMitigations] = useState<Mitigation[]>([]);
   const [comparison, setComparison] = useState<Comparison>();
   const [selectedEvidence, setSelectedEvidence] = useState<string[]>([]);
-  const [modelAvailable, setModelAvailable] = useState<boolean>();
+  const [advisorAvailable, setAdvisorAvailable] = useState<boolean>();
   const [busy, setBusy] = useState<string>();
   const [notice, setNotice] = useState<{ text: string; tone: "error" | "success" | "info" }>();
 
@@ -70,9 +70,9 @@ export function BranchlineConsole() {
 
   useEffect(() => {
     void fetch("/api/capabilities")
-      .then((response) => response.json() as Promise<{ modelAssistance: boolean }>)
-      .then((result) => setModelAvailable(result.modelAssistance))
-      .catch(() => setModelAvailable(false));
+      .then((response) => response.json() as Promise<{ advisorAssistance: boolean }>)
+      .then((result) => setAdvisorAvailable(result.advisorAssistance))
+      .catch(() => setAdvisorAvailable(false));
   }, []);
 
   useEffect(() => {
@@ -228,15 +228,15 @@ export function BranchlineConsole() {
     }
   };
 
-  const askModel = async () => {
+  const askAdvisor = async () => {
     if (!workspace || !analysis) return;
-    setBusy("model");
+    setBusy("advisor");
     try {
       const result = await api<{ mitigation: Mitigation }>("/api/ai/mitigations", { method: "POST", body: JSON.stringify({ workspaceId: workspace.id, analysisId: analysis.id, selectedEvidenceIds: selectedEvidence }) });
       setMitigations((items) => [...items, result.mitigation]);
-      setNotice({ text: "A GPT-5.6 proposal was added as a reviewable card. It has not changed the scenario metrics.", tone: "success" });
+      setNotice({ text: "An advisor proposal was added as a reviewable card. It has not changed the scenario metrics.", tone: "success" });
     } catch (error) {
-      setNotice({ text: error instanceof Error ? error.message : "Model assistance is unavailable. Add OPENAI_API_KEY to enable it.", tone: "error" });
+      setNotice({ text: error instanceof Error ? error.message : "Advisor assistance is unavailable. Configure a compatible endpoint to enable it.", tone: "error" });
     } finally {
       setBusy(undefined);
     }
@@ -455,13 +455,13 @@ export function BranchlineConsole() {
           <section className="module mitigations">
             <div className="module__heading module__heading--split">
               <div><span className="module__index">04 / MITIGATION DESK</span><h2>Turn the rehearsal into release work.</h2></div>
-              <button className="button button--model" type="button" disabled={busy === "model" || !canUseModel || !modelAvailable} onClick={askModel}><Sparkles size={17} /> {busy === "model" ? "Requesting GPT-5.6…" : modelAvailable ? "Ask GPT-5.6" : "GPT-5.6 needs key"}</button>
+              <button className="button button--model" type="button" disabled={busy === "advisor" || !canUseModel || !advisorAvailable} onClick={askAdvisor}><Sparkles size={17} /> {busy === "advisor" ? "Requesting advisor…" : advisorAvailable ? "Ask configured advisor" : "Advisor not configured"}</button>
             </div>
-            <p className="module__subcopy">{modelAvailable ? "Deterministic proposals are available now. Model assistance only receives the selected, redacted evidence above and never changes simulation metrics." : "Deterministic proposals are available now. Add OPENAI_API_KEY and restart the server to enable GPT-5.6 review of selected, redacted evidence."}</p>
+            <p className="module__subcopy">{advisorAvailable ? "Deterministic proposals are available now. Advisor assistance only receives the selected, redacted evidence above and never changes simulation metrics." : "Deterministic proposals are available now. Use $branchline in Codex with no extra key, or configure a compatible advisor endpoint for browser-side assistance."}</p>
             <div className="mitigation-list">
               {mitigations.map((mitigation) => (
                 <article className={clsx("mitigation", `mitigation--${mitigation.status}`)} key={mitigation.id}>
-                  <div className="mitigation__source">{mitigation.source === "model" ? <><Sparkles size={15} /> GPT-5.6 proposal</> : <><ShieldCheck size={15} /> Deterministic proposal</>}</div>
+                  <div className="mitigation__source">{mitigation.source === "model" ? <><Sparkles size={15} /> Advisor proposal</> : <><ShieldCheck size={15} /> Deterministic proposal</>}</div>
                   <h3>{mitigation.editedContent ?? mitigation.title}</h3>
                   <p>{mitigation.rationale}</p>
                   <dl><div><dt>OWNER</dt><dd>{mitigation.owner}</dd></div><div><dt>VERIFY</dt><dd>{mitigation.verification}</dd></div><div><dt>FALLBACK</dt><dd>{mitigation.fallback}</dd></div></dl>

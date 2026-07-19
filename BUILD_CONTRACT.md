@@ -43,7 +43,7 @@ Branchline should feel like a **flight recorder for a software release**: dense,
 4. **Mitigation and test artifacts**
    - Branchline generates editable mitigation cards and a contract-test proposal based on the identified contract change.
    - Without an API key, the deterministic artifact generator remains fully usable and the UI truthfully labels model assistance as unavailable.
-   - With `OPENAI_API_KEY`, selected redacted evidence can be sent to the Responses API using `gpt-5.6`; structured output is validated before becoming a proposal.
+   - With an explicitly configured Chat Completions-compatible advisor, selected redacted evidence can become a validated proposal. With `$branchline`, the current Codex/GPT-5.6 session can reason over the same local brief without a second app key.
    - Users accept, edit, or reject each mitigation. Decisions persist.
 
 5. **Report and persistence**
@@ -73,7 +73,7 @@ Branchline should feel like a **flight recorder for a software release**: dense,
 | Local Git boundary | `simple-git`; only metadata and selected diffs are read |
 | Static analysis | TypeScript compiler API plus safe text heuristics |
 | Validation | Zod at all route/model boundaries |
-| Model integration | Official OpenAI JavaScript SDK and Responses API; `gpt-5.6` alias |
+| Model integration | `$branchline` Codex/GPT-5.6 workflow plus optional Chat Completions-compatible browser advisor |
 | Tests | Vitest unit/integration tests and Playwright browser tests |
 | Deployment | Node-compatible deployment with documented writable database volume requirements |
 

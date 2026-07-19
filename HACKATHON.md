@@ -14,7 +14,7 @@ Code review tells developers what changed; incident response tells them what alr
 
 Connect a local Git repository, select a base and candidate commit, and Branchline identifies changed contracts, direct source consumers, tests, and other release signals. A release captain then runs a deterministic scenario with a full rollout, canary, compatibility adapter, or rollback. Each decision changes a transparent shared state and appends an evidence-linked event to the release rail. Teams can branch a scenario, compare outcomes, accept mitigation cards, and export the decision record.
 
-For nuanced recommendations, Branchline optionally uses GPT-5.6 through the Responses API to transform only user-selected, redacted repository evidence into a structured mitigation proposal. The model never controls risk metrics, writes to a repository, deploys code, or makes a decision for the team.
+For nuanced recommendations, the included `$branchline` Codex skill gives GPT-5.6 only the locally generated, redacted evidence brief and returns a structured mitigation proposal for review—without a second application key. The standalone browser advisor is deliberately provider-neutral and is optional. No model controls risk metrics, writes to a repository, deploys code, or makes a decision for the team.
 
 ## Three-minute demo flow
 
@@ -26,11 +26,11 @@ For nuanced recommendations, Branchline optionally uses GPT-5.6 through the Resp
 | 1:20–1:45 | Choose Compatibility adapter. | “The safer path is not just suggested—it changes the state, adds a compatibility window, and raises test confidence.” |
 | 1:45–2:15 | Branch, choose Full rollout, compare. | “Now we replay the same release from the same moment. The branch exposes 76% traffic, 32% client error, and a high on-call urgency beside the controlled path.” |
 | 2:15–2:40 | Accept the contract-test mitigation and export the Markdown brief. | “The output is work the team can use: owner, verification, fallback, test proposal, evidence, and decision trace.” |
-| 2:40–3:00 | Show the GPT-5.6 button and architecture note. | “GPT-5.6 proposes reviewable mitigations from explicit redacted evidence. Codex built the engine, interface, tests, and verification workflow; deterministic rules keep the product auditable.” |
+| 2:40–3:00 | Run `$branchline` in Codex with the same release boundary. | “GPT-5.6 proposes reviewable mitigations from explicit redacted evidence through the Codex skill—no extra browser-app key. Codex built the engine, interface, tests, and verification workflow; deterministic rules keep the product auditable.” |
 
 ## Why GPT-5.6 and Codex matter
 
-- **GPT-5.6:** converts narrowly scoped, redacted evidence into structured mitigation proposals where professional judgment and explanation matter. It is not used for opaque scoring.
+- **GPT-5.6:** via the `$branchline` Codex skill, converts narrowly scoped, redacted evidence into structured mitigation proposals where professional judgment and explanation matter. It is not used for opaque scoring.
 - **Codex:** accelerated the full build—from analysis architecture and fixture design to UI implementation, test creation, browser automation, and submission documentation.
 - **Technical quality:** the app contains a real local Git integration, SQLite persistence, a deterministic simulation engine, validated API boundaries, exported artifacts, and a fixture-backed verification path.
 

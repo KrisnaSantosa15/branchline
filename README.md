@@ -30,7 +30,7 @@ The result is a working release decision tool, not a chat UI that summarizes a p
 - Rehearse full rollout, canary, compatibility adapter, and rollback decisions against deterministic state rules.
 - Persist scenario branches, a full causal event rail, mitigation decisions, and reports in SQLite.
 - Generate editable, deterministic contract-test and release-checklist proposals.
-- Optionally request a reviewable GPT-5.6 mitigation proposal from selected, redacted evidence.
+- Optionally request a reviewable mitigation proposal from a configured, Chat Completions-compatible advisor—or use `$branchline` in Codex with no separate provider key.
 - Compare scenario branches and download Markdown or JSON release briefs.
 
 ## Stack
@@ -38,7 +38,7 @@ The result is a working release decision tool, not a chat UI that summarizes a p
 - Next.js 16 + React + TypeScript
 - SQLite via `better-sqlite3`
 - `simple-git` for controlled Git reads and shallow bare remote clones
-- OpenAI Responses API for optional GPT-5.6 suggestions
+- Optional, Chat Completions-compatible advisor endpoint for browser-side suggestions
 - Vitest for engine verification
 - Playwright CLI for live browser workflow verification
 
@@ -70,16 +70,18 @@ Choose the older `baseline: optional release risk contract` commit as the base a
 ### Environment
 
 ```dotenv
-# Enables reviewable GPT-5.6 mitigation proposals. The deterministic product works without it.
-OPENAI_API_KEY=
-OPENAI_MODEL=gpt-5.6
+# Optional browser-side advisor. Any compatible Chat Completions endpoint works;
+# use HTTPS unless this is a loopback local provider. The deterministic product works without it.
+BRANCHLINE_ADVISOR_ENDPOINT=
+BRANCHLINE_ADVISOR_API_KEY=
+BRANCHLINE_ADVISOR_MODEL=
 
 # Branchline rejects repository paths outside this root.
 BRANCHLINE_REPO_ROOT=D:\\Projects\\exploration
 
 ```
 
-`gpt-5.6` is the GPT-5.6 Sol alias. It is invoked through the Responses API only after the user selects redacted evidence. See the [official model documentation](https://developers.openai.com/api/docs/models/gpt-5.6-sol).
+The browser advisor is deliberately provider-neutral and only receives user-selected, redacted evidence. For a no-extra-key route, `$branchline` generates the same local brief for the Codex agent already in the user's session; GPT-5.6 provides the release reasoning in that agent workflow.
 
 ## Commands
 
@@ -108,8 +110,8 @@ This route needs no separate model key: Codex reasons over the locally generated
 
 - Branchline reads local repositories only inside `BRANCHLINE_REPO_ROOT`. It also accepts credential-free public HTTPS Git URLs, which it shallow-clones as bare repositories into its own managed cache.
 - It does not execute repository code, run arbitrary tests, make pull requests, deploy, or contact external systems.
-- Potential secrets are redacted before any optional OpenAI request is prepared.
-- GPT-5.6 suggestions are proposals validated as structured data; they never alter scenario metrics or apply changes automatically.
+- Potential secrets are redacted before any optional advisor request is prepared.
+- Advisor suggestions are proposals validated as structured data; they never alter scenario metrics or apply changes automatically.
 - All metrics in the release rail are deterministic scenario outputs. They are not observed production telemetry or a promise that a real incident will occur.
 
 ## How the simulation works
@@ -137,6 +139,6 @@ Each event cites the rule and source evidence that produced it. This makes the r
 
 Codex accelerated the full product build: project architecture, local Git analysis, deterministic scenario design, test fixture creation, database/API implementation, interface construction, and browser verification.
 
-GPT-5.6 is used where it adds value rather than replacing deterministic controls: interpreting selected redacted evidence and proposing a structured mitigation for human review. The core simulation stays deterministic and evidence-linked so teams can interrogate why a risk path exists.
+GPT-5.6 is used through the `$branchline` Codex skill where it adds value rather than replacing deterministic controls: interpreting selected redacted evidence and proposing a structured mitigation for human review. The standalone browser advisor remains provider-neutral. The core simulation stays deterministic and evidence-linked so teams can interrogate why a risk path exists.
 
 See [HACKATHON.md](HACKATHON.md) for the project description and a <3-minute demo narrative.
