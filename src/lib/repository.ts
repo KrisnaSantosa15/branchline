@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { mkdir, realpath, stat } from "node:fs/promises";
 import path from "node:path";
 import { simpleGit, type SimpleGit } from "simple-git";
-import type { CommitInfo, RepositorySource } from "./domain";
+import type { RepositorySource } from "./domain";
 
 export class RepositoryError extends Error {}
 
