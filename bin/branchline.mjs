@@ -40,6 +40,7 @@ Usage:
   branchline council <local-git-path-or-public-https-url> [base-commit] [head-commit] [--format json|markdown]
   branchline validate-report <evidence-pack.json> <report.json> [...report.json] [--format json|markdown]
   branchline check <local-git-path-or-public-https-url> [base-commit] [head-commit] [--policy <policy.yml>] [--release-brief <brief.json>]
+  branchline mcp
   branchline doctor
 
 Harnesses: codex, claude-code, cursor, github-copilot, opencode, gemini, all
@@ -175,6 +176,14 @@ async function check(argumentsList) {
   process.exitCode = exitCode;
 }
 
+async function mcp(argumentsList) {
+  const tsxCli = require.resolve("tsx/cli");
+  const server = join(packageRoot, "scripts", "mcp.ts");
+  const tsconfig = join(packageRoot, "tsconfig.json");
+  const exitCode = await run(process.execPath, [tsxCli, "--tsconfig", tsconfig, server, ...argumentsList]);
+  process.exitCode = exitCode;
+}
+
 async function doctor() {
   const nodeMajor = Number(process.versions.node.split(".")[0]);
   console.log(`Node.js ${process.versions.node} ${nodeMajor >= 20 ? "✓" : "✗ requires Node 20+"}`);
@@ -214,6 +223,10 @@ async function main() {
   }
   if (command === "check") {
     await check(argumentsList);
+    return;
+  }
+  if (command === "mcp") {
+    await mcp(argumentsList);
     return;
   }
   if (command === "doctor") {
