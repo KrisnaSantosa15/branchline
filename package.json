@@ -47,6 +47,7 @@
     "test:distribution": "node scripts/test-distribution.mjs",
     "test:codex-plugin": "node scripts/test-codex-plugin.mjs",
     "test:claude-plugin": "node scripts/test-claude-plugin.mjs",
+    "test:mcp": "node scripts/test-mcp.mjs",
     "package:check": "npm pack --dry-run"
   },
   "dependencies": {
